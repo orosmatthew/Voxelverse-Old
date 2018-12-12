@@ -1,0 +1,8 @@
+from godot import exposed, export
+from godot.bindings import Node, Vector2
+
+
+@exposed
+class Test(Node):
+    def _ready(self):
+        print("HI")
