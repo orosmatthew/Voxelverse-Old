@@ -14,37 +14,29 @@ func _ready():
 
 
 func makeRegion(chunkPos):
-	var x1 = int(floor(chunkPos.x/256))
-	var x2 = int(floor(chunkPos.x))
-	var y1 = int(floor(chunkPos.y/128))
-	var y2 = int(floor(chunkPos.y))
-	var z1 = int(floor(chunkPos.z/256))
-	var z2 = int(floor(chunkPos.z))
+	var x1 = floor(chunkPos.x/64)
+	var y1 = floor(chunkPos.y/64)
+	var z1 = floor(chunkPos.z/64)
 	if not Vector3(x1,y1,z1) in blockMemoryDict:
 		blockMemoryDict[Vector3(x1,y1,z1)] = {}
 
 
 func makeChunk(chunkPos):
-	var x1 = int(floor(chunkPos.x/256))
-	var x2 = int(floor(chunkPos.x))
-	var y1 = int(floor(chunkPos.y/128))
-	var y2 = int(floor(chunkPos.y))
-	var z1 = int(floor(chunkPos.z/256))
-	var z2 = int(floor(chunkPos.z))
+	var x1 = floor(chunkPos.x/64)
+	var y1 = floor(chunkPos.y/64)
+	var z1 = floor(chunkPos.z/64)
 	if Vector3(x1,y1,z1) in blockMemoryDict:
 		blockMemoryDict[Vector3(x1,y1,z1)][chunkPos] = {}
+		return true
 	else:
 		return false
 
 func existChunk(chunkPos):
-	var x1 = int(floor(chunkPos.x/256))
-	var x2 = int(floor(chunkPos.x))
-	var y1 = int(floor(chunkPos.y/128))
-	var y2 = int(floor(chunkPos.y))
-	var z1 = int(floor(chunkPos.z/256))
-	var z2 = int(floor(chunkPos.z))
+	var x1 = floor(chunkPos.x/64)
+	var y1 = floor(chunkPos.y/64)
+	var z1 = floor(chunkPos.z/64)
 	if Vector3(x1,y1,z1) in blockMemoryDict:
-		if Vector3(x2,y2,z2) in blockMemoryDict[Vector3(x1,y1,z1)]:
+		if chunkPos in blockMemoryDict[Vector3(x1,y1,z1)]:
 			return true
 		else:
 			return false
@@ -52,12 +44,12 @@ func existChunk(chunkPos):
 		return false
 
 func existBlock(blockPos):
-	var x1 = int(floor(blockPos.x/1024))
-	var x2 = int(floor(blockPos.x/4))
-	var y1 = int(floor(blockPos.y/1024))
-	var y2 = int(floor(blockPos.y/8))
-	var z1 = int(floor(blockPos.z/1024))
-	var z2 = int(floor(blockPos.z/4))
+	var x1 = floor(blockPos.x/1024)
+	var x2 = floor(blockPos.x/16)
+	var y1 = floor(blockPos.y/1024)
+	var y2 = floor(blockPos.y/16)
+	var z1 = floor(blockPos.z/1024)
+	var z2 = floor(blockPos.z/16)
 	if existChunk(Vector3(x2,y2,z2)):
 		if blockPos in blockMemoryDict[Vector3(x1,y1,z1)][Vector3(x2,y2,z2)]:
 			return true
@@ -68,11 +60,11 @@ func existBlock(blockPos):
 
 func setBlockData(blockPos,data):
 	var x1 = int(floor(blockPos.x/1024))
-	var x2 = int(floor(blockPos.x/4))
+	var x2 = int(floor(blockPos.x/16))
 	var y1 = int(floor(blockPos.y/1024))
-	var y2 = int(floor(blockPos.y/8))
+	var y2 = int(floor(blockPos.y/16))
 	var z1 = int(floor(blockPos.z/1024))
-	var z2 = int(floor(blockPos.z/4))
+	var z2 = int(floor(blockPos.z/16))
 	if existChunk(Vector3(x2,y2,z2)):
 		blockMemoryDict[Vector3(x1,y1,z1)][Vector3(x2,y2,z2)][blockPos] = data
 		return true
@@ -81,11 +73,11 @@ func setBlockData(blockPos,data):
 		
 func getBlockData(blockPos):
 	var x1 = int(floor(blockPos.x/1024))
-	var x2 = int(floor(blockPos.x/4))
+	var x2 = int(floor(blockPos.x/16))
 	var y1 = int(floor(blockPos.y/1024))
-	var y2 = int(floor(blockPos.y/8))
+	var y2 = int(floor(blockPos.y/16))
 	var z1 = int(floor(blockPos.z/1024))
-	var z2 = int(floor(blockPos.z/4))
+	var z2 = int(floor(blockPos.z/6))
 	if existChunk(Vector3(x2,y2,z2)):
 		if blockPos in blockMemoryDict[Vector3(x1,y1,z1)][Vector3(x2,y2,z2)]:
 			return blockMemoryDict[Vector3(x1,y1,z1)][Vector3(x2,y2,z2)][blockPos]
