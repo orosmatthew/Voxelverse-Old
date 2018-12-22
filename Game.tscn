@@ -76,12 +76,12 @@ transform = Transform( 0.707107, 0.409915, -0.576168, 0, 0.814824, 0.579708, 0.7
 light_indirect_energy = 0.0
 light_specular = 0.0
 shadow_enabled = true
-shadow_color = Color( 0.309804, 0.309804, 0.309804, 1 )
+shadow_color = Color( 0.4, 0.4, 0.4, 1 )
 script = ExtResource( 3 )
 
 [node name="DirectionalLight2" type="DirectionalLight" parent="DirectionalLight"]
 transform = Transform( 1, -3.27826e-007, 2.98023e-007, -3.57628e-007, -1, -0.000697732, 2.98023e-007, 0.000697672, -1, 0, 0, 0 )
-light_energy = 0.05
+light_energy = 0.1
 light_indirect_energy = 0.0
 light_specular = 0.0
 shadow_color = Color( 0.501961, 0.501961, 0.501961, 1 )

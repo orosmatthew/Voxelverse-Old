@@ -44,12 +44,12 @@ func _process(delta):
 func chunking(a):
 	var mutex = Mutex.new()
 	var exit = false
+	
 	while exit == false:
 		#if len(updateQueue)==0:
-
-		if offy<8:
-			if offx<8:
-				if offz<8:
+		if offy<4:
+			if offx<16:
+				if offz<16:
 					prevTime = OS.get_ticks_msec()
 					var chunk = load("res://Chunk.tscn").instance()
 					mutex.lock()
