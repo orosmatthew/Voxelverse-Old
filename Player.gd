@@ -1,8 +1,9 @@
 extends KinematicBody
 
-var FRICTION = 0.05
-var ACCEL = 0.75
-var WALKSPEED = 7
+var FRICTION = 0.075
+var ACCEL = 0.375
+#warning-ignore:unused_class_variable
+#var WALKSPEED = 1.5
 var velocity = Vector3(0,0,0)
 
 var mouse_sensitivity = 0.15
@@ -11,45 +12,37 @@ var camera_angle_x = 0
 func _ready():
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
+
 func _physics_process(delta):
-	
-	
+	velocity.y-=0.5
+	velocity.x-=(velocity.x*FRICTION)
+	velocity.z-=(velocity.z*FRICTION)
 	var aim = self.get_rotation_degrees()
 	if Input.is_action_pressed("move_forward"):
-		#if abs(velocity.z)<abs(WALKSPEED*cos(deg2rad(aim.y))):
 		velocity.z-=ACCEL*cos(deg2rad(aim.y))
-		#if abs(velocity.x)<abs(WALKSPEED*sin(deg2rad(aim.y))):
 		velocity.x-=ACCEL*sin(deg2rad(aim.y))
 	if Input.is_action_pressed("move_backward"):
-		#if abs(velocity.z)<abs(WALKSPEED*cos(deg2rad(aim.y))):
 		velocity.z+=ACCEL*cos(deg2rad(aim.y))
-		#if abs(velocity.x)<abs(WALKSPEED*sin(deg2rad(aim.y))):
 		velocity.x+=ACCEL*sin(deg2rad(aim.y))
 	if Input.is_action_pressed("move_left"):
-		#if abs(velocity.x)<abs(WALKSPEED*cos(deg2rad(aim.y))):
 		velocity.x-=ACCEL*cos(deg2rad(aim.y))
-		#if abs(velocity.x)<abs(WALKSPEED*sin(deg2rad(aim.y))):
 		velocity.z+=ACCEL*sin(deg2rad(aim.y))
 	if Input.is_action_pressed("move_right"):
-		#if abs(velocity.x)<abs(WALKSPEED*cos(deg2rad(aim.y))):
 		velocity.x+=ACCEL*cos(deg2rad(aim.y))
-		#if abs(velocity.x)<abs(WALKSPEED*sin(deg2rad(aim.y))):
 		velocity.z-=ACCEL*sin(deg2rad(aim.y))
-	if Input.is_action_pressed("move_up"):
-		#if abs(velocity.y)<abs(WALKSPEED):
-		velocity.y+=ACCEL
+
+	if Input.is_action_pressed("move_up") and is_on_floor():
+		velocity.y=8
+	"""
 	if Input.is_action_pressed("move_down"):
 		#if abs(velocity.y)<abs(WALKSPEED):
 		velocity.y-=ACCEL
-			
+	"""
 
 
+	velocity = self.move_and_slide(velocity, Vector3(0,1,0))
 	
-	
-	
-	velocity-=(velocity*FRICTION)
-	velocity = self.move_and_slide(velocity)
-	
+#warning-ignore:unused_argument
 func _process(delta):
 	pass
 func _input(event):

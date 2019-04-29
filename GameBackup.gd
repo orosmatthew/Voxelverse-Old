@@ -117,7 +117,7 @@ func build(orderList):
 		if len(blockMemoryHandler("get",item[0],item[1],item[2],"adjacent")) >= 6:
 			if blockMemoryHandler("get",item[0],item[1],item[2],"object") != null:
 				dictHandlerList.append(["set",item[0],item[1],item[2],"object",null])
-				blockMemoryHandler("get",item[0],item[1],item[2],"object").free()
+				#blockMemoryHandler("get",item[0],item[1],item[2],"object").free()
 				blockMemoryHandler("set",item[0],item[1],item[2],"object",null)
 			blockMemoryHandler("set",item[0],item[1],item[2],"shown",false)
 	

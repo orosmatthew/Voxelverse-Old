@@ -81,9 +81,9 @@ func place(x,y,z):
 
 
 	
-func delete(x,y,z):
+#func delete(x,y,z):
 
-	get_node(str(str(x)+" "+str(y)+" "+str(z))).free()
+	#get_node(str(str(x)+" "+str(y)+" "+str(z))).free()
 	
 #func _process(delta):
 #	# Called every frame. Delta is time since last frame.
