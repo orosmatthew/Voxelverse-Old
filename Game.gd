@@ -1,6 +1,5 @@
 extends Node
 
-#var blockMemory = {Vector3(0,0,0):{Vector3(0,0,0):{}}}
 onready var blockMemory = load("res://blockMemory.gd").new()
 var updateQueue = []
 var thread = Thread.new()
@@ -18,79 +17,19 @@ func _ready():
 	genSeed = randi()
 	threadUpdate.start(self,'chunking')
 	prevTime = OS.get_ticks_msec()
-	
-"""
-Vector3 to UV
-0,0 = 0,1
-1,0 = 0,0
-0,1 = 1,1
-1,1 = 1,0
-"""
 
-	
-
-func chunkPhysics(a):
-	print("physics")
-	var prevPlayerChunk = playerChunk
-	var done = false
-	var physList = []
-	var madeList = false
-	var mutex = Mutex.new()
-	var deltaMsec = 0
-	while true:
-		if prevPlayerChunk.x==playerChunk.x and prevPlayerChunk.z==playerChunk.z:# and deltaMsec > 500:
-			if done == false:
-				if blockMemory.existChunk(prevPlayerChunk)==true:
-					if madeList == false:
-						for b in blockMemory.getChunk(prevPlayerChunk):
-							physList.append(b)
-						madeList = true
-					if len(physList)!=0:
-						var staticScene = load("res://cubeStatic.tscn").instance()
-						mutex.lock()
-						get_node("Physics").add_child(staticScene)
-						staticScene.global_transform[3][0] = (prevPlayerChunk.x*16)+physList[0].x
-						staticScene.global_transform[3][1] = physList[0].y
-						staticScene.global_transform[3][2] = (prevPlayerChunk.z*16)+physList[0].z
-						mutex.unlock()
-						physList.remove(0)
-					else:
-						done = true
-		
-			
-		else:
-			mutex.lock()
-			for c in get_node("Physics").get_children():
-				c.free()
-			mutex.unlock()
-			prevPlayerChunk = playerChunk
-			done = false
-			physList = []
-			madeList = false
-			deltaMsec = 0
-			prevTime = OS.get_ticks_msec()
-		#deltaMsec+=(OS.get_ticks_msec()-prevTime)
 
 var playerChunk = Vector3(0,0,0)
-#var chunkQueue = []
 
 func _process(delta):
 
 	get_node("fps_label").set_text(str(Engine.get_frames_per_second()))
 	var playerPos = get_node("Player").global_transform[3]
 	playerChunk = Vector3(floor(playerPos[0]/16.0),floor(playerPos[1]/16.0),floor(playerPos[2]/16.0))
-	if Input.is_action_just_pressed("save"):
-		# Open a file
-		print("Done")
-		var file = File.new()
-		if file.open("res://saved_game.txt", File.WRITE) != 0:
-		    print("Error opening file")
-		    return
-		
-		file.store_line(to_json(blockMemory.blockMemoryDict))
-		file.close()
 	if Input.is_action_just_pressed("reset"):
 		get_tree().reload_current_scene()
+		
+		
 func placeChunk(c):
 	var mutex = Mutex.new()
 	if not blockMemory.existChunk(c):
@@ -100,11 +39,6 @@ func placeChunk(c):
 		chunk.chunkPos = c
 		chunk.set_name(str(c.x)+" "+str(c.y)+" "+str(c.z))
 		chunk.generateChunk(null)
-
-
-
-
-
 
 func chunking(a):
 	var mutex = Mutex.new()
@@ -173,15 +107,6 @@ func chunking(a):
 					chunkObjDict[c].free()
 					blockMemory.deleteChunk(c)
 					chunkObjDict.erase(c)
-			"""
-			for child in get_node("Chunks").get_children():
-				var strArr = child.get_name().split(" ")
-				var childChunk = Vector3(int(strArr[0]),int(strArr[1]),int(strArr[2]))
-				if not childChunk in chunkListCopy:
-					child.free()
-					blockMemory.deleteChunk(childChunk)
-					break
-			"""
 		else:
 			copied = false
 			chunkListCopy = []
@@ -198,7 +123,3 @@ func chunking(a):
 			chunkOn.x = playerChunk.x
 			chunkOn.z = playerChunk.z
 		
-func _physics_process(delta):
-	pass
-	
-	

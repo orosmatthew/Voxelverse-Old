@@ -12,23 +12,14 @@ var mat = SpatialMaterial.new()
 onready var mutex = Mutex.new()
 func _ready():
 
-	#var mat = load("res://SpatialMaterial.tres")
 	new_texture = load("res://textures/textures.png")
 	new_texture.flags = 0
 	mat.albedo_texture = new_texture
-	#mat.set_flag(SpatialMaterial.FLAG_USE_VERTEX_LIGHTING,true)
 	mat.set_flag(SpatialMaterial.FLAG_DISABLE_AMBIENT_LIGHT,true)
 	mat.set_metallic(0)
 	mat.set_specular(0)
 	mat.set_roughness(0)
-	#mat.set_feature(SpatialMaterial.FEATURE_AMBIENT_OCCLUSION,true)
-	#img.load("res://textures/textures.png")
-	#new_texture.load("res://textures/textures.png")
-	#new_texture = load("res://textures/textures.png")
-	#new_texture.set_data(img)
 	new_texture.set_flags(2)
-	#noise.seed = 87984307
-
 
 func getTextureAtlasUVs(size,pos):
 	var offset = Vector2(pos.x/size.x,pos.y/size.y)
@@ -36,15 +27,14 @@ func getTextureAtlasUVs(size,pos):
 	var zero = Vector2(offset.x,offset.y)
 	return [zero,one]
 
-
 func getFace(orient,x,y,z):
-	var vertices = []#PoolVector3Array()
-	var UVs = []#PoolVector2Array()
+	var vertices = []
+	var UVs = []
 	var textureAtlasSize = Vector2(8,8)
+	
 
 	if orient == "top":
 		var UVOffsets = getTextureAtlasUVs(textureAtlasSize,Vector2(0,0))
-		#var UVOffsets = getTextureAtlasUVs(textureAtlasSize,Vector2(4,0))
 		vertices.append(Vector3(x,1+y,z))
 		vertices.append(Vector3(1+x,1+y,z))
 		vertices.append(Vector3(x,1+y,1+z))
@@ -59,7 +49,6 @@ func getFace(orient,x,y,z):
 		UVs.append(Vector2(UVOffsets[0].x,UVOffsets[1].y))
 	elif orient == "bottom":
 		var UVOffsets = getTextureAtlasUVs(textureAtlasSize,Vector2(2,0))
-		#var UVOffsets = getTextureAtlasUVs(textureAtlasSize,Vector2(4,0))
 		vertices.append(Vector3(x,y,1+z))
 		vertices.append(Vector3(1+x,y,1+z))
 		vertices.append(Vector3(x,y,z))
@@ -74,7 +63,6 @@ func getFace(orient,x,y,z):
 		UVs.append(Vector2(UVOffsets[0].x,UVOffsets[1].y))
 	elif orient == "left":
 		var UVOffsets = getTextureAtlasUVs(textureAtlasSize,Vector2(1,0))
-		#var UVOffsets = getTextureAtlasUVs(textureAtlasSize,Vector2(4,0))
 		vertices.append(Vector3(x,y,1+z))
 		vertices.append(Vector3(x,y,z))
 		vertices.append(Vector3(x,1+y,1+z))
@@ -89,7 +77,6 @@ func getFace(orient,x,y,z):
 		UVs.append(Vector2(UVOffsets[1].x,UVOffsets[0].y))
 	elif orient == "right":
 		var UVOffsets = getTextureAtlasUVs(textureAtlasSize,Vector2(1,0))
-		#var UVOffsets = getTextureAtlasUVs(textureAtlasSize,Vector2(4,0))
 		vertices.append(Vector3(1+x,y,z))
 		vertices.append(Vector3(1+x,y,1+z))
 		vertices.append(Vector3(1+x,1+y,z))
@@ -104,7 +91,6 @@ func getFace(orient,x,y,z):
 		UVs.append(Vector2(UVOffsets[1].x,UVOffsets[0].y))
 	elif orient == "front":
 		var UVOffsets = getTextureAtlasUVs(textureAtlasSize,Vector2(1,0))
-		#var UVOffsets = getTextureAtlasUVs(textureAtlasSize,Vector2(4,0))
 		vertices.append(Vector3(x,y,1+z))
 		vertices.append(Vector3(x,1+y,1+z))
 		vertices.append(Vector3(1+x,y,1+z))
@@ -119,7 +105,6 @@ func getFace(orient,x,y,z):
 		UVs.append(Vector2(UVOffsets[1].x,UVOffsets[0].y))
 	elif orient == "back":
 		var UVOffsets = getTextureAtlasUVs(textureAtlasSize,Vector2(1,0))
-		#var UVOffsets = getTextureAtlasUVs(textureAtlasSize,Vector2(4,0))
 		vertices.append(Vector3(1+x,y,z))
 		vertices.append(Vector3(1+x,1+y,z))
 		vertices.append(Vector3(x,y,z))
@@ -134,16 +119,8 @@ func getFace(orient,x,y,z):
 		UVs.append(Vector2(UVOffsets[1].x,UVOffsets[0].y))
 	return [vertices,UVs]
 
-func updateChunk(a):
-
-
-	calcChunk(blockList,true)
-
-
-
 func calcChunk(orderList,up=false):
-
-
+	
 	var vertices = []
 	var UVs = []
 	var tempDict = {}
@@ -194,7 +171,6 @@ func calcChunk(orderList,up=false):
 	for b in tempDict:
 		game.blockMemory.setBlockData(Vector3(b[0]+(chunkPos[0]*16),b[1]+(chunkPos[1]*16),b[2]+(chunkPos[2]*16)),{})
 		game.blockMemory.setBlockData(Vector3(b[0]+(chunkPos[0]*16),b[1]+(chunkPos[1]*16),b[2]+(chunkPos[2]*16)),tempDict[b])
-		#chunkBlockDict[Vector3(b[0]+(chunkPos[0]*16),b[1]+(chunkPos[1]*16),b[2]+(chunkPos[2]*16))] = tempDict[b]
 	call_deferred('renderChunk',up)
 
 func renderChunk(up=false):
@@ -235,8 +211,7 @@ func renderChunk(up=false):
 
 
 func generateChunk(a):
-	#game.chunkCount+=1
-	#print(game.chunkCount)
+
 	var list = []
 	var n = 0
 	self.global_transform[3][0] = chunkPos[0]*16
@@ -245,21 +220,15 @@ func generateChunk(a):
 	noise.seed = game.get("genSeed")
 
 	noise.octaves = 3
-	noise.period = 25#20#20
-	noise.persistence = 0.3#0.3
+	noise.period = 25
+	noise.persistence = 0.3
 	for i in range(16):
 		for j in range(16):
 			for k in range(16):
-				#if rand_range(0,1)>0.8:
-				#n = noise.get_noise_3d(i+(chunkPos[0]*16),j+(chunkPos[1]*16),k+(chunkPos[2]*16))
-				
 				n = noise.get_noise_3d((i+(chunkPos[0]*16)),(j+(chunkPos[1]*16)),(k+(chunkPos[2]*16)))
 				n/=2
 				n+=0.5
-				#var thresh = pow(0.925,(j+(chunkPos[1]*16)))
-				#var thresh = pow(0.95,(j+(chunkPos[1]*16)))
 				var thresh = pow(0.975,(j+(chunkPos[1]*16)))
 				if n < thresh:
-				#if n > 0.2:
 					list.append([i,j,k])
 	calcChunk(list)
