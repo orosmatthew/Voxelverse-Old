@@ -5,6 +5,7 @@ var noise = OpenSimplexNoise.new()
 onready var game = get_tree().get_root().get_node("Game")
 var mat = SpatialMaterial.new()
 onready var mutex = Mutex.new()
+var blockDict = {}
 
 func _ready():
 	var new_texture = ImageTexture.new()
@@ -28,7 +29,6 @@ func getFace(orient,x,y,z):
 	var UVs = []
 	var textureAtlasSize = Vector2(8,8)
 	
-
 	if orient == "top":
 		var UVOffsets = getTextureAtlasUVs(textureAtlasSize,Vector2(0,0))
 		vertices.append(Vector3(x,1+y,z))
@@ -116,7 +116,7 @@ func getFace(orient,x,y,z):
 	return [vertices,UVs]
 
 func calcChunk(orderList,up=false):
-	
+	#to be called in thread
 	var vertices = []
 	var UVs = []
 	var tempDict = {}
@@ -150,7 +150,6 @@ func calcChunk(orderList,up=false):
 
 		for n in adjNameList:
 			if not adjNameList[n] in tempDict:
-				#if not game.blockMemory.existBlock(Vector3(adjNameList[n][0]+(chunkPos[0]*16),adjNameList[n][1]+(chunkPos[1]*16),adjNameList[n][2]+(chunkPos[2]*16))):
 				var returnStuff = getFace(n,x,y,z)
 				tempDict[b]["vertices"].append(returnStuff[0])
 				tempDict[b]["UVs"].append(returnStuff[1])
@@ -160,19 +159,17 @@ func calcChunk(orderList,up=false):
 				for i in returnStuff[1]:
 					UVs.append(i)
 	
-	game.blockMemory.makeRegion(chunkPos)
-	game.blockMemory.makeChunk(chunkPos)
+	
 	var blockList = orderList
 	
 	for b in tempDict:
-		game.blockMemory.setBlockData(Vector3(b[0]+(chunkPos[0]*16),b[1]+(chunkPos[1]*16),b[2]+(chunkPos[2]*16)),{})
-		game.blockMemory.setBlockData(Vector3(b[0]+(chunkPos[0]*16),b[1]+(chunkPos[1]*16),b[2]+(chunkPos[2]*16)),tempDict[b])
+		blockDict[Vector3(b[0],b[1],b[2])] = tempDict[b]
 	call_deferred('renderChunk',up)
 
 func renderChunk(up=false):
 	var vertices = []
 	var UVs = []
-	var chunkData = game.blockMemory.getChunkData(chunkPos)
+	var chunkData = blockDict
 	for b in chunkData:
 		for v in chunkData[b]["vertices"]:
 			for v1 in v:
@@ -207,7 +204,7 @@ func renderChunk(up=false):
 
 
 func generateChunk(a):
-
+	#to be called in thread
 	var list = []
 	var n = 0
 	self.global_transform[3][0] = chunkPos[0]*16

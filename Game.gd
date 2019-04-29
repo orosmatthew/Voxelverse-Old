@@ -1,10 +1,9 @@
 extends Node
 
-onready var blockMemory = load("res://blockMemory.gd").new()
 var threadUpdate = Thread.new()
-var chunkObjDict = {}
 var genSeed = 0
 var playerChunk = Vector3(0,0,0)
+var chunkDict = {}
 
 func _ready():
 	randomize()
@@ -13,7 +12,6 @@ func _ready():
 
 
 func _process(delta):
-
 	get_node("fps_label").set_text(str(Engine.get_frames_per_second()))
 	var playerPos = get_node("Player").global_transform[3]
 	playerChunk = Vector3(floor(playerPos[0]/16.0),floor(playerPos[1]/16.0),floor(playerPos[2]/16.0))
@@ -23,10 +21,10 @@ func _process(delta):
 		
 func placeChunk(c):
 	var mutex = Mutex.new()
-	if not blockMemory.existChunk(c):
+	if not c in chunkDict:
 		var chunk = load("res://Chunk.tscn").instance()
 		get_node("Chunks").add_child(chunk)
-		chunkObjDict[c] = chunk
+		chunkDict[c] = chunk
 		chunk.chunkPos = c
 		chunk.set_name(str(c.x)+" "+str(c.y)+" "+str(c.z))
 		chunk.generateChunk(null)
@@ -46,7 +44,7 @@ func chunking(a):
 	var twice = false
 	var chunkOn = Vector3(0,0,0)
 	var countChunks = 0
-	var chunkNum = pow(16,2)
+	var chunkNum = pow(15,2)
 
 	var initChunk = false
 	chunkOn.x = playerChunk.x
@@ -92,12 +90,13 @@ func chunking(a):
 			if len(chunkList)!=0:
 				placeChunk(chunkList[0])
 				chunkList.remove(0)
-			
-			for c in chunkObjDict:
+
+			for c in chunkDict:
 				if not c in chunkListCopy:
-					chunkObjDict[c].free()
-					blockMemory.deleteChunk(c)
-					chunkObjDict.erase(c)
+					chunkDict[c].free()
+					chunkDict.erase(c)
+					
+
 		else:
 			copied = false
 			chunkListCopy = []
