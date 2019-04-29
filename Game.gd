@@ -1,25 +1,16 @@
 extends Node
 
 onready var blockMemory = load("res://blockMemory.gd").new()
-var updateQueue = []
-var thread = Thread.new()
 var threadUpdate = Thread.new()
-var threadRender = Thread.new()
-var prevTime
-var printed = false
-var playerPrevChunk
 var chunkObjDict = {}
 var genSeed = 0
-var chunkCount = 0
+var playerChunk = Vector3(0,0,0)
 
 func _ready():
 	randomize()
 	genSeed = randi()
 	threadUpdate.start(self,'chunking')
-	prevTime = OS.get_ticks_msec()
 
-
-var playerChunk = Vector3(0,0,0)
 
 func _process(delta):
 

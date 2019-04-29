@@ -1,17 +1,13 @@
 extends Spatial
 
 var chunkPos = Vector3(0,0,0)
-var update = false
-var blockList = []
 var noise = OpenSimplexNoise.new()
 onready var game = get_tree().get_root().get_node("Game")
-var threadN
-var new_texture = ImageTexture.new()
-var img = Image.new()
 var mat = SpatialMaterial.new()
 onready var mutex = Mutex.new()
-func _ready():
 
+func _ready():
+	var new_texture = ImageTexture.new()
 	new_texture = load("res://textures/textures.png")
 	new_texture.flags = 0
 	mat.albedo_texture = new_texture
@@ -166,7 +162,7 @@ func calcChunk(orderList,up=false):
 	
 	game.blockMemory.makeRegion(chunkPos)
 	game.blockMemory.makeChunk(chunkPos)
-	blockList = orderList
+	var blockList = orderList
 	
 	for b in tempDict:
 		game.blockMemory.setBlockData(Vector3(b[0]+(chunkPos[0]*16),b[1]+(chunkPos[1]*16),b[2]+(chunkPos[2]*16)),{})
