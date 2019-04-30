@@ -4,6 +4,7 @@ var threadUpdate = Thread.new()
 var genSeed = 0
 var playerChunk = Vector3(0,0,0)
 var chunkDict = {}
+var exitLoop = false
 
 func _ready():
 	randomize()
@@ -16,6 +17,8 @@ func _process(delta):
 	var playerPos = get_node("Player").global_transform[3]
 	playerChunk = Vector3(floor(playerPos[0]/16.0),floor(playerPos[1]/16.0),floor(playerPos[2]/16.0))
 	if Input.is_action_just_pressed("reset"):
+		exitLoop = true
+		threadUpdate.wait_to_finish()
 		get_tree().reload_current_scene()
 		
 		
@@ -51,6 +54,7 @@ func chunking(a):
 	chunkOn.z = playerChunk.z
 
 	while exit == false:
+		exit = self.exitLoop
 		if prevPlayerChunk.x==playerChunk.x and prevPlayerChunk.z==playerChunk.z:
 			while(countChunks<chunkNum):
 				if vertCount<vertNum:
