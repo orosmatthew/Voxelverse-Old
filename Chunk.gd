@@ -170,7 +170,7 @@ func calcChunk(orderList,up=false):
 	renderChunk(up)
 
 func renderChunk(up=false):
-
+	
 	var vertices = []
 	var UVs = []
 	var chunkData = blockDict

@@ -124,8 +124,15 @@ func chunkManager(a):
 			mutex.lock()
 			for c in chunkList:
 				addChunkQueue(c)
+			var deleteList = []
+			for c in chunkDict:
+				if not c in chunkList:
+					chunkDict[c].free()
+					deleteList.append(c)
+			for c in deleteList:
+				chunkDict.erase(c)
 			mutex.unlock()
-
+		
 					
 			done = true
 		elif not (prevPlayerChunk.x==playerChunk.x and prevPlayerChunk.z==playerChunk.z):
@@ -147,4 +154,7 @@ func chunkManager(a):
 			initChunk = false
 			chunkOn.x = playerChunk.x
 			chunkOn.z = playerChunk.z
+			
+			
+			
 		
