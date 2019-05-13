@@ -1,7 +1,7 @@
 extends KinematicBody
 
 var FRICTION = 0.075
-var ACCEL = 0.375
+var ACCEL = 1#0.375
 #warning-ignore:unused_class_variable
 #var WALKSPEED = 1.5
 var velocity = Vector3(0,0,0)
@@ -14,8 +14,9 @@ func _ready():
 
 
 func _physics_process(delta):
-	velocity.y-=0.5
+	#velocity.y-=0.5
 	velocity.x-=(velocity.x*FRICTION)
+	velocity.y-=(velocity.y*FRICTION)
 	velocity.z-=(velocity.z*FRICTION)
 	var aim = self.get_rotation_degrees()
 	if Input.is_action_pressed("move_forward"):
@@ -31,18 +32,19 @@ func _physics_process(delta):
 		velocity.x+=ACCEL*cos(deg2rad(aim.y))
 		velocity.z-=ACCEL*sin(deg2rad(aim.y))
 
-	if Input.is_action_pressed("move_up") and is_on_floor():
-		velocity.y=8
-	"""
+	if Input.is_action_pressed("move_up"):# and is_on_floor():
+		#velocity.y=8
+		velocity.y+=ACCEL
+
 	if Input.is_action_pressed("move_down"):
 		#if abs(velocity.y)<abs(WALKSPEED):
 		velocity.y-=ACCEL
-	"""
+	
 
 
 	velocity = self.move_and_slide(velocity, Vector3(0,1,0))
 	
-#warning-ignore:unused_argument
+
 func _process(delta):
 	pass
 func _input(event):

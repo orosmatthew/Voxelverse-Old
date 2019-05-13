@@ -1,16 +1,46 @@
 extends Node
 
-var threadUpdate = Thread.new()
+var threadChunkManager = Thread.new()
+var threadChunking = Thread.new()
 var genSeed = 0
 var playerChunk = Vector3(0,0,0)
 var chunkDict = {}
 var exitLoop = false
+var chunkQueue = []
+onready var mutex = Mutex.new()
 
 func _ready():
 	randomize()
 	genSeed = randi()
-	threadUpdate.start(self,'chunking')
+	threadChunkManager.start(self,'chunkManager')
+	threadChunking.start(self,'chunking')
 
+
+func chunking(a):
+	var exit = exitLoop
+	while(exit==false):
+		var r = mutex.try_lock()
+		if r!=ERR_BUSY:
+			var c = claimChunkQueue(null)
+			mutex.unlock()
+			if c!=null:
+				placeChunk(c)
+		exit = exitLoop
+		
+
+func addChunkQueue(pos):
+	chunkQueue.append(pos)
+	
+func resetQueue(a):
+	chunkQueue = []
+	
+func claimChunkQueue(a):
+	if len(chunkQueue)!=0:
+		var temp = chunkQueue[0]
+		chunkQueue.remove(0)
+		return temp
+	else:
+		return null
 
 func _process(delta):
 	get_node("fps_label").set_text(str(Engine.get_frames_per_second()))
@@ -18,22 +48,26 @@ func _process(delta):
 	playerChunk = Vector3(floor(playerPos[0]/16.0),floor(playerPos[1]/16.0),floor(playerPos[2]/16.0))
 	if Input.is_action_just_pressed("reset"):
 		exitLoop = true
-		threadUpdate.wait_to_finish()
+		threadChunkManager.wait_to_finish()
+		threadChunking.wait_to_finish()
 		get_tree().reload_current_scene()
 		
 		
 func placeChunk(c):
-	var mutex = Mutex.new()
 	if not c in chunkDict:
+		mutex.lock()
 		var chunk = load("res://Chunk.tscn").instance()
-		get_node("Chunks").add_child(chunk)
-		chunkDict[c] = chunk
 		chunk.chunkPos = c
 		chunk.set_name(str(c.x)+" "+str(c.y)+" "+str(c.z))
+		get_node("Chunks").add_child(chunk)
+		mutex.unlock()
 		chunk.generateChunk(null)
-
-func chunking(a):
-	var mutex = Mutex.new()
+		mutex.lock()
+		chunkDict[c] = chunk
+		mutex.unlock()
+		
+		
+func chunkManager(a):
 	var exit = false
 	var copied = false
 	var chunkListCopy = []
@@ -48,14 +82,14 @@ func chunking(a):
 	var chunkOn = Vector3(0,0,0)
 	var countChunks = 0
 	var chunkNum = pow(15,2)
-
+	var done = false
 	var initChunk = false
 	chunkOn.x = playerChunk.x
 	chunkOn.z = playerChunk.z
 
 	while exit == false:
 		exit = self.exitLoop
-		if prevPlayerChunk.x==playerChunk.x and prevPlayerChunk.z==playerChunk.z:
+		if done == false:
 			while(countChunks<chunkNum):
 				if vertCount<vertNum:
 					chunkList.append(chunkOn)
@@ -87,21 +121,18 @@ func chunking(a):
 							else:
 								dir=0
 
-			if copied == false:
-				for i in chunkList:
-					chunkListCopy.append(i)
-				copied = true
-			if len(chunkList)!=0:
-				placeChunk(chunkList[0])
-				chunkList.remove(0)
+			mutex.lock()
+			for c in chunkList:
+				addChunkQueue(c)
+			mutex.unlock()
 
-			for c in chunkDict:
-				if not c in chunkListCopy:
-					chunkDict[c].free()
-					chunkDict.erase(c)
 					
-
-		else:
+			done = true
+		elif not (prevPlayerChunk.x==playerChunk.x and prevPlayerChunk.z==playerChunk.z):
+			done = false
+			mutex.lock()
+			resetQueue(null)
+			mutex.unlock()
 			copied = false
 			chunkListCopy = []
 			chunkList = []

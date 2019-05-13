@@ -4,10 +4,11 @@ var chunkPos = Vector3(0,0,0)
 var noise = OpenSimplexNoise.new()
 onready var game = get_tree().get_root().get_node("Game")
 var mat = SpatialMaterial.new()
-onready var mutex = Mutex.new()
+onready var mutex = game.mutex
 var blockDict = {}
 
 func _ready():
+	mutex.lock()
 	var new_texture = ImageTexture.new()
 	new_texture = load("res://textures/textures.png")
 	new_texture.flags = 0
@@ -17,6 +18,7 @@ func _ready():
 	mat.set_specular(0)
 	mat.set_roughness(0)
 	new_texture.set_flags(2)
+	mutex.unlock()
 
 func getTextureAtlasUVs(size,pos):
 	var offset = Vector2(pos.x/size.x,pos.y/size.y)
@@ -164,9 +166,11 @@ func calcChunk(orderList,up=false):
 	
 	for b in tempDict:
 		blockDict[Vector3(b[0],b[1],b[2])] = tempDict[b]
-	call_deferred('renderChunk',up)
+
+	renderChunk(up)
 
 func renderChunk(up=false):
+
 	var vertices = []
 	var UVs = []
 	var chunkData = blockDict
@@ -180,7 +184,7 @@ func renderChunk(up=false):
 	if len(vertices)==0 or len(UVs)==0:
 		return
 
-
+	mutex.lock()
 	var testMesh = MeshInstance.new()
 	var tmpMesh = Mesh.new()
 
@@ -194,13 +198,14 @@ func renderChunk(up=false):
 		st.add_uv(UVs[v])
 		st.add_vertex(vertices[v])
 	st.generate_normals()
-
+	
 	st.commit(tmpMesh)
 	testMesh.set_mesh(tmpMesh)
 	testMesh.set_name("mesh")
 
+	
 	add_child(testMesh)
-	testMesh.create_trimesh_collision()
+	mutex.unlock()
 
 
 func generateChunk(a):

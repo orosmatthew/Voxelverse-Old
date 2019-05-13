@@ -73,4 +73,3 @@ shadow_bias = 0.01
 shadow_contact = 1.0
 
 [node name="Physics" type="Node" parent="."]
-
