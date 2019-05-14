@@ -255,7 +255,7 @@ func generateChunk(a):
 				n/=2
 				n+=0.5
 				#0.95
-				var thresh = pow(0.8,(j+(chunkPos[1]*16)))
+				var thresh = pow(0.95,(j+(chunkPos[1]*16)))
 				if n < thresh:
 					list.append([i,j,k])
 
