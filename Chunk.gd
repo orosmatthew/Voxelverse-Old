@@ -117,7 +117,7 @@ func getFace(orient,x,y,z):
 		UVs.append(Vector2(UVOffsets[1].x,UVOffsets[0].y))
 	return [vertices,UVs]
 
-func calcChunk(orderList,up=false):
+func calcChunk(orderList):
 	#to be called in thread
 	var vertices = []
 	var UVs = []
@@ -130,6 +130,7 @@ func calcChunk(orderList,up=false):
 		var y = order[1]
 		var z = order[2]
 		tempDict[Vector3(x,y,z)] = {}
+		#tempDict[Vector3(x,y,z)] = load("res://Blocks/Block.gd").new()
 
 	var adjChunkList = {"top":false,"bottom":false,
 						"front":false,"back":false,
@@ -153,32 +154,36 @@ func calcChunk(orderList,up=false):
 		for n in adjNameList:
 			if not adjNameList[n] in tempDict:
 				var returnStuff = getFace(n,x,y,z)
-				tempDict[b]["vertices"].append(returnStuff[0])
-				tempDict[b]["UVs"].append(returnStuff[1])
+				tempDict[b].vertices.append(returnStuff[0])
+				tempDict[b].UVs.append(returnStuff[1])
+				#tempDict[b].vertices.append(returnStuff[0])
+				#tempDict[b].UVs.append(returnStuff[1])
 
 				for i in returnStuff[0]:
 					vertices.append(i)
 				for i in returnStuff[1]:
 					UVs.append(i)
-	
+
+
 	
 	var blockList = orderList
 	
 	for b in tempDict:
 		blockDict[Vector3(b[0],b[1],b[2])] = tempDict[b]
 
-	renderChunk(up)
+	renderChunk()
 
-func renderChunk(up=false):
+func renderChunk():
 	
 	var vertices = []
 	var UVs = []
-	var chunkData = blockDict
-	for b in chunkData:
-		for v in chunkData[b]["vertices"]:
+	for b in blockDict:
+		#for v in blockDict[b].vertices:
+		for v in blockDict[b]["vertices"]:
 			for v1 in v:
 				vertices.append(v1)
-		for u in chunkData[b]["UVs"]:
+		#for u in blockDict[b].UVs:
+		for u in blockDict[b]["UVs"]:
 			for u1 in u:
 				UVs.append(u1)
 	if len(vertices)==0 or len(UVs)==0:
@@ -207,7 +212,30 @@ func renderChunk(up=false):
 	add_child(testMesh)
 	mutex.unlock()
 
-
+	
+	
+func genChunkCollision():
+	var collVerts = []
+	for b in blockDict:
+		#for v in blockDict[b].collisionVertices:
+		for v in blockDict[b]["collisionVertices"]:
+			for v1 in v:
+				collVerts.append(v1)
+	if len(collVerts)==0:
+		return
+	
+	mutex.lock()
+	var sB = StaticBody.new()
+	add_child(sB)
+	var cS = CollisionShape.new()
+	sB.add_child(cS)
+	var cPS = ConcavePolygonShape.new()
+	cPS.set_faces(collVerts)
+	#cS.make_convex_from_brothers()
+	cS.call_deferred('set_shape',cPS)#set_shape(cPS)
+	#cS.set_shape(cPS)
+	#cS.set_shape(cPS)
+	mutex.unlock()
 func generateChunk(a):
 	#to be called in thread
 	var list = []
@@ -226,7 +254,19 @@ func generateChunk(a):
 				n = noise.get_noise_3d((i+(chunkPos[0]*16)),(j+(chunkPos[1]*16)),(k+(chunkPos[2]*16)))
 				n/=2
 				n+=0.5
-				var thresh = pow(0.975,(j+(chunkPos[1]*16)))
+				#0.95
+				var thresh = pow(0.8,(j+(chunkPos[1]*16)))
 				if n < thresh:
 					list.append([i,j,k])
+
 	calcChunk(list)
+
+
+   
+	mutex.lock()
+	for b in blockDict:
+		#blockDict[b].collisionVertices = blockDict[b].vertices
+		blockDict[b]["collisionVertices"] = blockDict[b]["vertices"]
+	mutex.unlock()
+	genChunkCollision()
+	

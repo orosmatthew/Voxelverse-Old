@@ -21,7 +21,7 @@ func chunking(a):
 	while(exit==false):
 		var r = mutex.try_lock()
 		if r!=ERR_BUSY:
-			var c = claimChunkQueue(null)
+			var c = claimChunkQueue()
 			mutex.unlock()
 			if c!=null:
 				placeChunk(c)
@@ -31,10 +31,10 @@ func chunking(a):
 func addChunkQueue(pos):
 	chunkQueue.append(pos)
 	
-func resetQueue(a):
+func resetQueue():
 	chunkQueue = []
 	
-func claimChunkQueue(a):
+func claimChunkQueue():
 	if len(chunkQueue)!=0:
 		var temp = chunkQueue[0]
 		chunkQueue.remove(0)
@@ -84,11 +84,19 @@ func chunkManager(a):
 	var chunkNum = pow(15,2)
 	var done = false
 	var initChunk = false
+	var deleteList = []
 	chunkOn.x = playerChunk.x
 	chunkOn.z = playerChunk.z
 
 	while exit == false:
 		exit = self.exitLoop
+		mutex.lock()
+		if len(deleteList)!=0:
+			chunkDict[deleteList[0]].call_deferred('queue_free')
+			#chunkDict[deleteList[0]].queue_free()
+			chunkDict.erase(deleteList[0])
+			deleteList.remove(0)
+		mutex.unlock()
 		if done == false:
 			while(countChunks<chunkNum):
 				if vertCount<vertNum:
@@ -124,13 +132,13 @@ func chunkManager(a):
 			mutex.lock()
 			for c in chunkList:
 				addChunkQueue(c)
-			var deleteList = []
+			
 			for c in chunkDict:
 				if not c in chunkList:
-					chunkDict[c].free()
+					#chunkDict[c].call_deferred('queue_free')
+					#chunkDict[c].queue_free()
 					deleteList.append(c)
-			for c in deleteList:
-				chunkDict.erase(c)
+
 			mutex.unlock()
 		
 					
@@ -138,7 +146,7 @@ func chunkManager(a):
 		elif not (prevPlayerChunk.x==playerChunk.x and prevPlayerChunk.z==playerChunk.z):
 			done = false
 			mutex.lock()
-			resetQueue(null)
+			resetQueue()
 			mutex.unlock()
 			copied = false
 			chunkListCopy = []

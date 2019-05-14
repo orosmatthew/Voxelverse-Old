@@ -1,7 +1,7 @@
 extends KinematicBody
 
-var FRICTION = 0.075
-var ACCEL = 1#0.375
+var FRICTION = 0.15#0.075
+var ACCEL = 5#0.375#0.375
 #warning-ignore:unused_class_variable
 #var WALKSPEED = 1.5
 var velocity = Vector3(0,0,0)
@@ -14,31 +14,44 @@ func _ready():
 
 
 func _physics_process(delta):
-	#velocity.y-=0.5
+	if not is_on_floor():
+		velocity.y-=0.5
 	velocity.x-=(velocity.x*FRICTION)
-	velocity.y-=(velocity.y*FRICTION)
 	velocity.z-=(velocity.z*FRICTION)
+	var velo = Vector3(0,0,0)
 	var aim = self.get_rotation_degrees()
 	if Input.is_action_pressed("move_forward"):
-		velocity.z-=ACCEL*cos(deg2rad(aim.y))
-		velocity.x-=ACCEL*sin(deg2rad(aim.y))
+		velo.z+=-cos(deg2rad(aim.y))
+		velo.x+=-sin(deg2rad(aim.y))
 	if Input.is_action_pressed("move_backward"):
-		velocity.z+=ACCEL*cos(deg2rad(aim.y))
-		velocity.x+=ACCEL*sin(deg2rad(aim.y))
+		velo.z+=cos(deg2rad(aim.y))
+		velo.x+=sin(deg2rad(aim.y))
 	if Input.is_action_pressed("move_left"):
-		velocity.x-=ACCEL*cos(deg2rad(aim.y))
-		velocity.z+=ACCEL*sin(deg2rad(aim.y))
+		velo.x+=-cos(deg2rad(aim.y))
+		velo.z+=sin(deg2rad(aim.y))
 	if Input.is_action_pressed("move_right"):
-		velocity.x+=ACCEL*cos(deg2rad(aim.y))
-		velocity.z-=ACCEL*sin(deg2rad(aim.y))
+		velo.x+=cos(deg2rad(aim.y))
+		velo.z+=-sin(deg2rad(aim.y))
+	
+	if velo.x!=0:
+		var angle = atan2(velo.z,velo.x)
+		velocity.x = cos(angle)*ACCEL
+		velocity.z = sin(angle)*ACCEL
+	elif velo.z!=0:
+		velocity.x = 0
+		velocity.z = ACCEL
 
-	if Input.is_action_pressed("move_up"):# and is_on_floor():
-		#velocity.y=8
-		velocity.y+=ACCEL
 
-	if Input.is_action_pressed("move_down"):
+
+
+	
+	if Input.is_action_pressed("move_up") and is_on_floor():
+		velocity.y=8
+		#velocity.y+=ACCEL
+	
+	#if Input.is_action_pressed("move_down"):
 		#if abs(velocity.y)<abs(WALKSPEED):
-		velocity.y-=ACCEL
+		#velocity.y-=ACCEL
 	
 
 
