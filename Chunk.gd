@@ -240,21 +240,79 @@ func genChunkCollision(inThread=true):
 	if inThread==true:
 		mutex.unlock()
 
+func placeBlock(pVect):
+
+	if pVect in blockDict:
+		return
+	blockDict[pVect] = {}
+	var x = pVect.x
+	var y = pVect.y
+	var z = pVect.z
+	var adjNameList = {"top":Vector3(x,y+1,z),"bottom":Vector3(x,y-1,z),
+						"front":Vector3(x,y,z+1),"back":Vector3(x,y,z-1),
+						"right":Vector3(x+1,y,z),"left":Vector3(x-1,y,z)}
+	
+	var orderList = [pVect]
+	for a in adjNameList:
+		if adjNameList[a] in blockDict:
+			orderList.append(adjNameList[a])
+		
+	
+	var vertices = []
+	var UVs = []
+	var tempDict = {}
+
+	var adjCheckList = {}
+
+	for order in orderList:
+		x = order[0]
+		y = order[1]
+		z = order[2]
+		tempDict[Vector3(x,y,z)] = {}
+
+	var adjChunkList = {"top":false,"bottom":false,
+						"front":false,"back":false,
+						"right":false,"left":false}
+	var adjChunkPos = {"top":Vector3(chunkPos.x,chunkPos.y+1,chunkPos.z),"bottom":Vector3(chunkPos.x,chunkPos.y-1,chunkPos.z),
+						"front":Vector3(chunkPos.x,chunkPos.y,chunkPos.z+1),"back":Vector3(chunkPos.x,chunkPos.y,chunkPos.z-1),
+						"right":Vector3(chunkPos.x+1,chunkPos.y,chunkPos.z),"left":Vector3(chunkPos.x-1,chunkPos.y,chunkPos.z)}
+
+	var adjChunkCheckList = []
+	
+	for b in tempDict:
+		tempDict[b]["vertices"] = []
+		tempDict[b]["UVs"] = []
+		x = b.x
+		y = b.y
+		z = b.z
+		adjNameList = {"top":Vector3(x,y+1,z),"bottom":Vector3(x,y-1,z),
+						"front":Vector3(x,y,z+1),"back":Vector3(x,y,z-1),
+						"right":Vector3(x+1,y,z),"left":Vector3(x-1,y,z)}
+
+		for n in adjNameList:
+			if not adjNameList[n] in blockDict:
+				var returnStuff = getFace(n,x,y,z)
+				tempDict[b]['vertices'].append(returnStuff[0])
+				tempDict[b]['UVs'].append(returnStuff[1])
+	
+	for b in tempDict:
+		blockDict[Vector3(b[0],b[1],b[2])] = tempDict[b]
+	if meshNode!=null:
+		meshNode.queue_free()
+	renderChunk(false)
+
+
+	for b in blockDict:
+		blockDict[b].collisionVertices = blockDict[b].vertices
+	if staticNode!=null:
+		staticNode.queue_free()
+	genChunkCollision(false)
+
 func removeBlock(pVect):
 
 	if not pVect in blockDict:
 		return
-	#print("1l s")
-	#m.lock()
-	#print("1l e")
-	
-	
-	
 	blockDict.erase(pVect)
-	#print("1u s")
-	#m.unlock()
-	#print("1u e")
-
 	var x = pVect.x
 	var y = pVect.y
 	var z = pVect.z
@@ -279,7 +337,6 @@ func removeBlock(pVect):
 		y = order[1]
 		z = order[2]
 		tempDict[Vector3(x,y,z)] = {}
-		#tempDict[Vector3(x,y,z)] = load("res://Blocks/Block.gd").new()
 
 	var adjChunkList = {"top":false,"bottom":false,
 						"front":false,"back":false,

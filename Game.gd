@@ -62,6 +62,8 @@ func _process(delta):
 									int(playerPosition.z)%16)
 	
 	#var breakBlockPos = get_node("Player").global_transform[3]+Vector3(0,-2,0)
+	
+	var placeBlockPos = Vector3(0,0,0)
 	var breakBlockThere = false
 	var breakBlockPos = Vector3(0,0,0)
 	if rayCast.get_collider()!=null:
@@ -71,25 +73,37 @@ func _process(delta):
 		pos+=Vector3(-0.5,-0.5,-0.5)
 		if abs(norm.x)==1:
 			breakBlockPos.z = int(round(pos.z))
+			placeBlockPos.z = int(round(pos.z))
 			breakBlockPos.y = int(round(pos.y))
+			placeBlockPos.y = int(round(pos.y))
 			if norm.x>0:
 				breakBlockPos.x = int(floor(pos.x))
+				placeBlockPos.x = int(floor(pos.x))+1
 			else:
 				breakBlockPos.x = int(ceil(pos.x))
+				placeBlockPos.x = int(ceil(pos.x))-1
 		if abs(norm.y)==1:
 			breakBlockPos.z = int(round(pos.z))
+			placeBlockPos.z = int(round(pos.z))
 			breakBlockPos.x = int(round(pos.x))
+			placeBlockPos.x = int(round(pos.x))
 			if norm.y>0:
 				breakBlockPos.y = int(floor(pos.y))
+				placeBlockPos.y = int(floor(pos.y))+1
 			else:
 				breakBlockPos.y = int(ceil(pos.y))
+				placeBlockPos.y = int(ceil(pos.y))-1
 		if abs(norm.z)==1:
 			breakBlockPos.x = int(round(pos.x))
+			placeBlockPos.x = int(round(pos.x))
 			breakBlockPos.y = int(round(pos.y))
+			placeBlockPos.y = int(round(pos.y))
 			if norm.z>0:
 				breakBlockPos.z = int(floor(pos.z))
+				placeBlockPos.z = int(floor(pos.z))+1
 			else:
 				breakBlockPos.z = int(ceil(pos.z))
+				placeBlockPos.z = int(ceil(pos.z))-1
 
 	
 	var breakBlockChunk = Vector3(floor(breakBlockPos[0]/16.0),floor((breakBlockPos[1])/16.0),floor(breakBlockPos[2]/16.0))
@@ -103,6 +117,18 @@ func _process(delta):
 		breakBlockPositionInChunk.y=16+breakBlockPositionInChunk.y
 	if breakBlockPositionInChunk.z<0:
 		breakBlockPositionInChunk.z=16+breakBlockPositionInChunk.z
+		
+	var placeBlockChunk = Vector3(floor(placeBlockPos[0]/16.0),floor((placeBlockPos[1])/16.0),floor(placeBlockPos[2]/16.0))
+	var placeBlockPosition = Vector3(floor(placeBlockPos[0]),floor(placeBlockPos[1]),floor(placeBlockPos[2]))
+	var placeBlockPositionInChunk = Vector3(int(placeBlockPosition.x)%16,
+										int(placeBlockPosition.y)%16,
+										int(placeBlockPosition.z)%16)
+	if placeBlockPositionInChunk.x<0:
+		placeBlockPositionInChunk.x=16+placeBlockPositionInChunk.x
+	if placeBlockPositionInChunk.y<0:
+		placeBlockPositionInChunk.y=16+placeBlockPositionInChunk.y
+	if placeBlockPositionInChunk.z<0:
+		placeBlockPositionInChunk.z=16+placeBlockPositionInChunk.z
 	
 	if breakBlockThere:
 		get_node("SelectBox").show()
@@ -117,9 +143,11 @@ func _process(delta):
 		get_tree().reload_current_scene()
 	if Input.is_action_just_pressed("break"):
 		#addChunkQueue(breakBlockChunk, breakBlockPositionInChunk)
-			if breakBlockThere:
-				chunkDict[breakBlockChunk].removeBlock(breakBlockPositionInChunk)
-		
+		if breakBlockThere:
+			chunkDict[breakBlockChunk].removeBlock(breakBlockPositionInChunk)
+	if Input.is_action_just_pressed("place"):
+		if breakBlockThere:
+			chunkDict[placeBlockChunk].placeBlock(placeBlockPositionInChunk)
 func placeChunk(c):
 	if not c in chunkDict:
 		#mutex.lock()
@@ -158,11 +186,11 @@ func chunkManager(a):
 	while exit == false:
 		exit = self.exitLoop
 		mutex.lock()
-		if len(deleteList)!=0:
-			chunkDict[deleteList[0]].call_deferred('queue_free')
+		#if len(deleteList)!=0:
+			#chunkDict[deleteList[0]].call_deferred('queue_free')
 			#chunkDict[deleteList[0]].queue_free()
-			chunkDict.erase(deleteList[0])
-			deleteList.remove(0)
+			#chunkDict.erase(deleteList[0])
+			#deleteList.remove(0)
 		mutex.unlock()
 		if done == false:
 			while(countChunks<chunkNum):
