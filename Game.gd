@@ -62,7 +62,53 @@ func _process(delta):
 									int(playerPosition.z)%16)
 	
 	#var breakBlockPos = get_node("Player").global_transform[3]+Vector3(0,-2,0)
+	var breakBlockThere = false
+	var breakBlockPos = Vector3(0,0,0)
+	if rayCast.get_collider()!=null:
+		breakBlockThere = true
+		var pos = rayCast.get_collision_point()
+		var norm = rayCast.get_collision_normal()
+		pos+=Vector3(-0.5,-0.5,-0.5)
+		if abs(norm.x)==1:
+			breakBlockPos.z = int(round(pos.z))
+			breakBlockPos.y = int(round(pos.y))
+			if norm.x>0:
+				breakBlockPos.x = int(floor(pos.x))
+			else:
+				breakBlockPos.x = int(ceil(pos.x))
+		if abs(norm.y)==1:
+			breakBlockPos.z = int(round(pos.z))
+			breakBlockPos.x = int(round(pos.x))
+			if norm.y>0:
+				breakBlockPos.y = int(floor(pos.y))
+			else:
+				breakBlockPos.y = int(ceil(pos.y))
+		if abs(norm.z)==1:
+			breakBlockPos.x = int(round(pos.x))
+			breakBlockPos.y = int(round(pos.y))
+			if norm.z>0:
+				breakBlockPos.z = int(floor(pos.z))
+			else:
+				breakBlockPos.z = int(ceil(pos.z))
+
 	
+	var breakBlockChunk = Vector3(floor(breakBlockPos[0]/16.0),floor((breakBlockPos[1])/16.0),floor(breakBlockPos[2]/16.0))
+	var breakBlockPosition = Vector3(floor(breakBlockPos[0]),floor(breakBlockPos[1]),floor(breakBlockPos[2]))
+	var breakBlockPositionInChunk = Vector3(int(breakBlockPosition.x)%16,
+										int(breakBlockPosition.y)%16,
+										int(breakBlockPosition.z)%16)
+	if breakBlockPositionInChunk.x<0:
+		breakBlockPositionInChunk.x=16+breakBlockPositionInChunk.x
+	if breakBlockPositionInChunk.y<0:
+		breakBlockPositionInChunk.y=16+breakBlockPositionInChunk.y
+	if breakBlockPositionInChunk.z<0:
+		breakBlockPositionInChunk.z=16+breakBlockPositionInChunk.z
+	
+	if breakBlockThere:
+		get_node("SelectBox").show()
+		get_node("SelectBox").transform[3] = breakBlockPosition+Vector3(0.5,0.5,0.5)
+	else:
+		get_node("SelectBox").hide()
 	
 	if Input.is_action_just_pressed("reset"):
 		exitLoop = true
@@ -71,46 +117,8 @@ func _process(delta):
 		get_tree().reload_current_scene()
 	if Input.is_action_just_pressed("break"):
 		#addChunkQueue(breakBlockChunk, breakBlockPositionInChunk)
-		var breakBlockPos = Vector3(0,0,0)
-		if rayCast.get_collider()!=null:
-			var pos = rayCast.get_collision_point()
-			var norm = rayCast.get_collision_normal()
-			pos+=Vector3(-0.5,-0.5,-0.5)
-			if abs(norm.x)==1:
-				breakBlockPos.z = int(round(pos.z))
-				breakBlockPos.y = int(round(pos.y))
-				if norm.x>0:
-					breakBlockPos.x = int(floor(pos.x))
-				else:
-					breakBlockPos.x = int(ceil(pos.x))
-			if abs(norm.y)==1:
-				breakBlockPos.z = int(round(pos.z))
-				breakBlockPos.x = int(round(pos.x))
-				if norm.y>0:
-					breakBlockPos.y = int(floor(pos.y))
-				else:
-					breakBlockPos.y = int(ceil(pos.y))
-			if abs(norm.z)==1:
-				breakBlockPos.x = int(round(pos.x))
-				breakBlockPos.y = int(round(pos.y))
-				if norm.z>0:
-					breakBlockPos.z = int(floor(pos.z))
-				else:
-					breakBlockPos.z = int(ceil(pos.z))
-	
-		
-			var breakBlockChunk = Vector3(floor(breakBlockPos[0]/16.0),floor((breakBlockPos[1])/16.0),floor(breakBlockPos[2]/16.0))
-			var breakBlockPosition = Vector3(floor(breakBlockPos[0]),floor(breakBlockPos[1]),floor(breakBlockPos[2]))
-			var breakBlockPositionInChunk = Vector3(int(breakBlockPosition.x)%16,
-												int(breakBlockPosition.y)%16,
-												int(breakBlockPosition.z)%16)
-			if breakBlockPositionInChunk.x<0:
-				breakBlockPositionInChunk.x=16+breakBlockPositionInChunk.x
-			if breakBlockPositionInChunk.y<0:
-				breakBlockPositionInChunk.y=16+breakBlockPositionInChunk.y
-			if breakBlockPositionInChunk.z<0:
-				breakBlockPositionInChunk.z=16+breakBlockPositionInChunk.z
-			chunkDict[breakBlockChunk].removeBlock(breakBlockPositionInChunk)
+			if breakBlockThere:
+				chunkDict[breakBlockChunk].removeBlock(breakBlockPositionInChunk)
 		
 func placeChunk(c):
 	if not c in chunkDict:
