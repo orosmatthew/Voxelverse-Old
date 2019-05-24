@@ -7,7 +7,11 @@ var playerChunk = Vector3(0,0,0)
 var chunkDict = {}
 var exitLoop = false
 var chunkQueue = []
+var playerPosition = Vector3(0,0,0)
+var playerPositionInChunk = Vector3(0,0,0)
 onready var mutex = Mutex.new()
+var count = 0
+onready var rayCast = get_node("Player/Camera/RayCast")
 
 func _ready():
 	randomize()
@@ -24,12 +28,18 @@ func chunking(a):
 			var c = claimChunkQueue()
 			mutex.unlock()
 			if c!=null:
-				placeChunk(c)
+				if c[1] == null:
+					placeChunk(c[0])
+				else:
+					chunkDict[c[0]].removeBlock(c[1])
 		exit = exitLoop
 		
 
-func addChunkQueue(pos):
-	chunkQueue.append(pos)
+func addChunkQueue(pos, vect=null):
+	if vect==null:
+		chunkQueue.append([pos, vect])
+	else:
+		chunkQueue.insert(0,[pos, vect])
 	
 func resetQueue():
 	chunkQueue = []
@@ -46,25 +56,74 @@ func _process(delta):
 	get_node("fps_label").set_text(str(Engine.get_frames_per_second()))
 	var playerPos = get_node("Player").global_transform[3]
 	playerChunk = Vector3(floor(playerPos[0]/16.0),floor(playerPos[1]/16.0),floor(playerPos[2]/16.0))
+	playerPosition = Vector3(floor(playerPos[0]),floor(playerPos[1]),floor(playerPos[2]))
+	playerPositionInChunk = Vector3(int(playerPosition.x)%16,
+									int(playerPosition.y)%16,
+									int(playerPosition.z)%16)
+	
+	#var breakBlockPos = get_node("Player").global_transform[3]+Vector3(0,-2,0)
+	
+	
 	if Input.is_action_just_pressed("reset"):
 		exitLoop = true
 		threadChunkManager.wait_to_finish()
 		threadChunking.wait_to_finish()
 		get_tree().reload_current_scene()
+	if Input.is_action_just_pressed("break"):
+		#addChunkQueue(breakBlockChunk, breakBlockPositionInChunk)
+		var breakBlockPos = Vector3(0,0,0)
+		if rayCast.get_collider()!=null:
+			var pos = rayCast.get_collision_point()
+			var norm = rayCast.get_collision_normal()
+			pos+=Vector3(-0.5,-0.5,-0.5)
+			if abs(norm.x)==1:
+				breakBlockPos.z = int(round(pos.z))
+				breakBlockPos.y = int(round(pos.y))
+				if norm.x>0:
+					breakBlockPos.x = int(floor(pos.x))
+				else:
+					breakBlockPos.x = int(ceil(pos.x))
+			if abs(norm.y)==1:
+				breakBlockPos.z = int(round(pos.z))
+				breakBlockPos.x = int(round(pos.x))
+				if norm.y>0:
+					breakBlockPos.y = int(floor(pos.y))
+				else:
+					breakBlockPos.y = int(ceil(pos.y))
+			if abs(norm.z)==1:
+				breakBlockPos.x = int(round(pos.x))
+				breakBlockPos.y = int(round(pos.y))
+				if norm.z>0:
+					breakBlockPos.z = int(floor(pos.z))
+				else:
+					breakBlockPos.z = int(ceil(pos.z))
+	
 		
+			var breakBlockChunk = Vector3(floor(breakBlockPos[0]/16.0),floor((breakBlockPos[1])/16.0),floor(breakBlockPos[2]/16.0))
+			var breakBlockPosition = Vector3(floor(breakBlockPos[0]),floor(breakBlockPos[1]),floor(breakBlockPos[2]))
+			var breakBlockPositionInChunk = Vector3(int(breakBlockPosition.x)%16,
+												int(breakBlockPosition.y)%16,
+												int(breakBlockPosition.z)%16)
+			if breakBlockPositionInChunk.x<0:
+				breakBlockPositionInChunk.x=16+breakBlockPositionInChunk.x
+			if breakBlockPositionInChunk.y<0:
+				breakBlockPositionInChunk.y=16+breakBlockPositionInChunk.y
+			if breakBlockPositionInChunk.z<0:
+				breakBlockPositionInChunk.z=16+breakBlockPositionInChunk.z
+			chunkDict[breakBlockChunk].removeBlock(breakBlockPositionInChunk)
 		
 func placeChunk(c):
 	if not c in chunkDict:
-		mutex.lock()
+		#mutex.lock()
 		var chunk = load("res://Chunk.tscn").instance()
 		chunk.chunkPos = c
 		chunk.set_name(str(c.x)+" "+str(c.y)+" "+str(c.z))
 		get_node("Chunks").add_child(chunk)
-		mutex.unlock()
+		#mutex.unlock()
 		chunk.generateChunk(null)
-		mutex.lock()
+		#mutex.lock()
 		chunkDict[c] = chunk
-		mutex.unlock()
+		#mutex.unlock()
 		
 		
 func chunkManager(a):
@@ -81,7 +140,7 @@ func chunkManager(a):
 	var twice = false
 	var chunkOn = Vector3(0,0,0)
 	var countChunks = 0
-	var chunkNum = pow(15,2)
+	var chunkNum = pow(15,2)#15
 	var done = false
 	var initChunk = false
 	var deleteList = []

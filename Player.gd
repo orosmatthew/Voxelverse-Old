@@ -2,9 +2,9 @@ extends KinematicBody
 
 var FRICTION = 0.15
 var accel = 5
-var SPRINT_SPEED = 6.5
 var WALK_SPEED = 5
-var SNEAK_SPEED = 1.5
+var SPRINT_SPEED = WALK_SPEED*1.3
+var SNEAK_SPEED = WALK_SPEED*0.3
 
 var velocity = Vector3(0,0,0)
 var velocityGoal = Vector3(0,0,0)
@@ -14,6 +14,8 @@ var camera_angle_x = 0
 
 func _ready():
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	var viewportSize = get_viewport().size
+	get_node("HUD/Cross").position = viewportSize/2.0
 
 func _physics_process(delta):
 	if Input.is_action_just_pressed("sprint"):
@@ -50,9 +52,9 @@ func _physics_process(delta):
 	if velo == Vector3(0,0,0):
 		velocityGoal=Vector3(0,0,0)
 	if is_on_floor():
-		velocityGoal+=(velo*0.2)
+		velocityGoal+=(velo*0.4)
 	else:
-		velocityGoal+=(velo*0.05)
+		velocityGoal+=(velo*0.2)
 	if velocityGoal.x!=0:
 		var angle = atan2(velocityGoal.z,velocityGoal.x)
 		velocity.x = cos(angle)*accel
