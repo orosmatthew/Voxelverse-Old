@@ -7,52 +7,40 @@ var playerChunk = Vector3(0,0,0)
 var chunkDict = {}
 var exitLoop = false
 var chunkQueue = []
+var genQueue = []
+var renderQueue = []
 var playerPosition = Vector3(0,0,0)
 var playerPositionInChunk = Vector3(0,0,0)
-onready var mutex = Mutex.new()
-var count = 0
+var chunkManagerInit = false
+onready var renderQueueMutex = Mutex.new()
+onready var genQueueMutex = Mutex.new()
+onready var chunkQueueMutex = Mutex.new()
 onready var rayCast = get_node("Player/Camera/RayCast")
 
 func _ready():
+	#called in main thread
 	randomize()
 	genSeed = randi()
-	threadChunkManager.start(self,'chunkManager')
 	threadChunking.start(self,'chunking')
 
-
 func chunking(a):
-	var exit = exitLoop
-	while(exit==false):
-		var r = mutex.try_lock()
+	#called in thread
+	while true:
+		var r = genQueueMutex.try_lock()
 		if r!=ERR_BUSY:
-			var c = claimChunkQueue()
-			mutex.unlock()
-			if c!=null:
-				if c[1] == null:
-					placeChunk(c[0])
-				else:
-					chunkDict[c[0]].removeBlock(c[1])
-		exit = exitLoop
-		
+			if len(genQueue)!=0:
+				var temp = genQueue[0]
+				genQueue.remove(0)
+				genQueueMutex.unlock()
+				if temp!=null:
+					temp.generateChunk(null)
+			else:
+				genQueueMutex.unlock()
+			
 
-func addChunkQueue(pos, vect=null):
-	if vect==null:
-		chunkQueue.append([pos, vect])
-	else:
-		chunkQueue.insert(0,[pos, vect])
-	
-func resetQueue():
-	chunkQueue = []
-	
-func claimChunkQueue():
-	if len(chunkQueue)!=0:
-		var temp = chunkQueue[0]
-		chunkQueue.remove(0)
-		return temp
-	else:
-		return null
 
 func _process(delta):
+	#called in main thread
 	get_node("fps_label").set_text(str(Engine.get_frames_per_second()))
 	var playerPos = get_node("Player").global_transform[3]
 	playerChunk = Vector3(floor(playerPos[0]/16.0),floor(playerPos[1]/16.0),floor(playerPos[2]/16.0))
@@ -60,8 +48,6 @@ func _process(delta):
 	playerPositionInChunk = Vector3(int(playerPosition.x)%16,
 									int(playerPosition.y)%16,
 									int(playerPosition.z)%16)
-	
-	#var breakBlockPos = get_node("Player").global_transform[3]+Vector3(0,-2,0)
 	
 	var placeBlockPos = Vector3(0,0,0)
 	var breakBlockThere = false
@@ -135,129 +121,162 @@ func _process(delta):
 		get_node("SelectBox").transform[3] = breakBlockPosition+Vector3(0.5,0.5,0.5)
 	else:
 		get_node("SelectBox").hide()
-	
+	"""
 	if Input.is_action_just_pressed("reset"):
 		exitLoop = true
 		threadChunkManager.wait_to_finish()
 		threadChunking.wait_to_finish()
 		get_tree().reload_current_scene()
-	if Input.is_action_just_pressed("break"):
-		#addChunkQueue(breakBlockChunk, breakBlockPositionInChunk)
+	"""
+	
+	if Input.is_action_pressed("break"):
 		if breakBlockThere:
+			chunkQueueMutex.lock()
 			chunkDict[breakBlockChunk].removeBlock(breakBlockPositionInChunk)
+			chunkQueueMutex.unlock()
 	if Input.is_action_just_pressed("place"):
 		if breakBlockThere:
-			chunkDict[placeBlockChunk].placeBlock(placeBlockPositionInChunk)
+			chunkQueueMutex.lock()
+			chunkDict[placeBlockChunk].placeBlock(placeBlockPositionInChunk,1)
+			chunkQueueMutex.unlock()
+	
+	chunkManager()
+	
 func placeChunk(c):
+	#called in main thread
 	if not c in chunkDict:
-		#mutex.lock()
 		var chunk = load("res://Chunk.tscn").instance()
 		chunk.chunkPos = c
 		chunk.set_name(str(c.x)+" "+str(c.y)+" "+str(c.z))
-		get_node("Chunks").add_child(chunk)
-		#mutex.unlock()
-		chunk.generateChunk(null)
-		#mutex.lock()
 		chunkDict[c] = chunk
-		#mutex.unlock()
+		#get_node("Chunks").call_deferred("add_child", chunk)
+		get_node("Chunks").add_child(chunk)
+		genQueueMutex.lock()
+		genQueue.append(chunk)
+		genQueueMutex.unlock()
+		#chunk.generateChunk(renderQueue,genSeed)
 		
 		
-func chunkManager(a):
-	var exit = false
-	var copied = false
-	var chunkListCopy = []
-	var chunkList = []
-	var prevPlayerChunk = Vector3(0,0,0)
-	var vertCount = 0
-	var vertNum = 4
-	var dir = 0
-	var count = 0
-	var num = 1
-	var twice = false
-	var chunkOn = Vector3(0,0,0)
-	var countChunks = 0
-	var chunkNum = pow(15,2)#15
-	var done = false
-	var initChunk = false
-	var deleteList = []
-	chunkOn.x = playerChunk.x
-	chunkOn.z = playerChunk.z
-
-	while exit == false:
-		exit = self.exitLoop
-		mutex.lock()
-		#if len(deleteList)!=0:
-			#chunkDict[deleteList[0]].call_deferred('queue_free')
-			#chunkDict[deleteList[0]].queue_free()
-			#chunkDict.erase(deleteList[0])
-			#deleteList.remove(0)
-		mutex.unlock()
-		if done == false:
-			while(countChunks<chunkNum):
-				if vertCount<vertNum:
-					chunkList.append(chunkOn)
-					chunkOn.y+=1
-					vertCount+=1
-				else:
-					vertCount = 0
-					chunkOn.y = 0
-					if countChunks<chunkNum:
-						countChunks+=1
-						count+=1
-						if dir==0:
-							chunkOn.z+=1
-						if dir==1:
-							chunkOn.x+=1
-						if dir==2:
-							chunkOn.z-=1
-						if dir==3:
-							chunkOn.x-=1
-						if count==num:
-							count = 0
-							if twice == true:
-								num+=1
-								twice = false
-							else:
-								twice = true
-							if dir<3:
-								dir+=1
-							else:
-								dir=0
-
-			mutex.lock()
-			for c in chunkList:
-				addChunkQueue(c)
-			
-			for c in chunkDict:
-				if not c in chunkList:
-					#chunkDict[c].call_deferred('queue_free')
-					#chunkDict[c].queue_free()
-					deleteList.append(c)
-
-			mutex.unlock()
 		
-					
-			done = true
-		elif not (prevPlayerChunk.x==playerChunk.x and prevPlayerChunk.z==playerChunk.z):
-			done = false
-			mutex.lock()
-			resetQueue()
-			mutex.unlock()
-			copied = false
-			chunkListCopy = []
-			chunkList = []
-			prevPlayerChunk = playerChunk
-			vertCount = 0
-			dir = 0
-			count = 0
-			num = 1
-			twice = false
-			chunkOn = Vector3(0,0,0)
-			countChunks = 0
-			initChunk = false
-			chunkOn.x = playerChunk.x
-			chunkOn.z = playerChunk.z
-			
+
+var exit = false
+var copied = false
+var chunkListCopy = []
+var chunkList = []
+var prevPlayerChunk = Vector3(0,0,0)
+var vertCount = 0
+var vertNum = 4
+var dir = 0
+var count = 0
+var num = 1
+var twice = false
+var chunkOn = Vector3(0,0,0)
+var countChunks = 0
+var chunkNum = pow(15,2)#15
+var done = false
+var initChunk = false
+var deleteList = []
+
+func chunkManager():
+	var r1 = renderQueueMutex.try_lock()
+	if r1!=ERR_BUSY:
+		if len(renderQueue)!=0:
+			var temp = renderQueue[0]
+			renderQueue.remove(0)
+			if temp!=null:
+				temp.renderChunk()
+				temp.genChunkCollision()
+			renderQueueMutex.unlock()
+		else:
+			renderQueueMutex.unlock()
+	
+	
+	var r = chunkQueueMutex.try_lock()
+	if r!=ERR_BUSY:
+		if len(chunkQueue)!=0:
+			var temp = chunkQueue[0]
+			chunkQueue.remove(0)
+			if temp!=null:
+				placeChunk(temp)
+			chunkQueueMutex.unlock()
+		else:
+			chunkQueueMutex.unlock()
+	
+	if len(deleteList)!=0:
+		chunkQueueMutex.lock()
+		genQueueMutex.lock()
+		renderQueueMutex.lock()
+		if deleteList[0] in genQueue:
+			genQueue.erase(deleteList[0])
+		if deleteList[0] in renderQueue:
+			renderQueue.erase(deleteList[0])
+		if deleteList[0] in chunkDict:
+			chunkDict[deleteList[0]].queue_free()
+		chunkDict.erase(deleteList[0])
+		deleteList.remove(0)
+		chunkQueueMutex.unlock()
+		genQueueMutex.unlock()
+		renderQueueMutex.unlock()
+	if done == false:
+		while(countChunks<chunkNum):
+			if vertCount<vertNum:
+				chunkList.append(chunkOn)
+				chunkOn.y+=1
+				vertCount+=1
+			else:
+				vertCount = 0
+				chunkOn.y = 0
+				if countChunks<chunkNum:
+					countChunks+=1
+					count+=1
+					if dir==0:
+						chunkOn.z+=1
+					if dir==1:
+						chunkOn.x+=1
+					if dir==2:
+						chunkOn.z-=1
+					if dir==3:
+						chunkOn.x-=1
+					if count==num:
+						count = 0
+						if twice == true:
+							num+=1
+							twice = false
+						else:
+							twice = true
+						if dir<3:
+							dir+=1
+						else:
+							dir=0
+		chunkQueueMutex.lock()
+		for c in chunkList:
+			chunkQueue.append(c)
+		chunkQueueMutex.unlock()
+		for c in chunkDict:
+			if not c in chunkList:
+				deleteList.append(c)
+		done = true
+
+	elif not (prevPlayerChunk.x==playerChunk.x and prevPlayerChunk.z==playerChunk.z):
+		done = false
+		chunkQueueMutex.lock()
+		chunkQueue = []
+		chunkQueueMutex.unlock()
+		copied = false
+		chunkListCopy = []
+		chunkList = []
+		prevPlayerChunk = playerChunk
+		vertCount = 0
+		dir = 0
+		count = 0
+		num = 1
+		twice = false
+		chunkOn = Vector3(0,0,0)
+		countChunks = 0
+		initChunk = false
+		chunkOn.x = playerChunk.x
+		chunkOn.z = playerChunk.z
+
 			
 			
 		

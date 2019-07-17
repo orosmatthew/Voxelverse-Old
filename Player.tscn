@@ -13,13 +13,19 @@ ambient_light_color = Color( 0.513726, 0.513726, 0.513726, 1 )
 fog_enabled = true
 fog_color = Color( 0.501961, 0.6, 0.701961, 1 )
 fog_depth_begin = 41.7
+auto_exposure_scale = 0.5
+auto_exposure_speed = 1.0
 ssao_enabled = true
-ssao_radius = 3.0
-ssao_intensity = 3.0
+ssao_radius = 6.3
+ssao_intensity = 1.5
+ssao_intensity2 = 0.0
 ssao_light_affect = 1.0
-ssao_color = Color( 0.219608, 0.219608, 0.219608, 1 )
+ssao_color = Color( 0.235294, 0.235294, 0.235294, 1 )
 dof_blur_far_distance = 30.0
-dof_blur_far_transition = 20.0
+dof_blur_far_transition = 10.0
+dof_blur_far_amount = 0.05
+glow_strength = 0.1
+glow_blend_mode = 1
 
 [node name="Player" type="KinematicBody"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 6.083, 84.943, 2.135 )
@@ -38,7 +44,7 @@ far = 199.6
 
 [node name="RayCast" type="RayCast" parent="Camera"]
 enabled = true
-cast_to = Vector3( 0, 0, -20 )
+cast_to = Vector3( 0, 0, -50 )
 
 [node name="OmniLight" type="OmniLight" parent="."]
 light_energy = 0.0

@@ -3,6 +3,7 @@ extends Node
 var pos = Vector3()
 var vertices = []
 var UVs = []
+var type = 0
 var collisionVertices = []
 
 func _ready():
