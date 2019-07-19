@@ -2,19 +2,19 @@ extends Node
 
 var pos = Vector3()
 var vertices = []
-var UVs = []
+var uvs = []
 var type = 0
-var collisionVertices = []
+var collision_vertices = []
 
 func _ready():
 	pass
 	
-func addVertice(v):
+func add_vertice(v):
 	vertices.append(v)
 	
-func addUV(u):
-	UVs.append(u)
+func add_uv(u):
+	uvs.append(u)
 	
-func setCollisionVertices():
+func set_collision_vertices():
 	for v in vertices:
-		collisionVertices.append(v)
+		collision_vertices.append(v)

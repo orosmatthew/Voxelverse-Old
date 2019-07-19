@@ -9,7 +9,7 @@ var SNEAK_SPEED = WALK_SPEED*0.3
 var velocity = Vector3(0,0,0)
 var velocityGoal = Vector3(0,0,0)
 var velocityGoalPrev = Vector3(0,0,0)
-var mouse_sensitivity = 0.15
+var mouse_sensitivity = 0.1
 var camera_angle_x = 0
 
 func _ready():

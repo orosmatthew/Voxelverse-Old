@@ -48,3 +48,6 @@ material/0 = null
 
 [node name="SelectBox" parent="." instance=ExtResource( 4 )]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.701176, 13.9285, 1.24364 )
+
+[node name="Timer" type="Timer" parent="."]
+one_shot = true

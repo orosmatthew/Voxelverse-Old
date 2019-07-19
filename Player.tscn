@@ -11,7 +11,6 @@ background_mode = 1
 background_color = Color( 0.392157, 0.780392, 0.988235, 1 )
 ambient_light_color = Color( 0.513726, 0.513726, 0.513726, 1 )
 fog_enabled = true
-fog_color = Color( 0.501961, 0.6, 0.701961, 1 )
 fog_depth_begin = 41.7
 auto_exposure_scale = 0.5
 auto_exposure_speed = 1.0
@@ -44,7 +43,7 @@ far = 199.6
 
 [node name="RayCast" type="RayCast" parent="Camera"]
 enabled = true
-cast_to = Vector3( 0, 0, -50 )
+cast_to = Vector3( 0, 0, -5 )
 
 [node name="OmniLight" type="OmniLight" parent="."]
 light_energy = 0.0
