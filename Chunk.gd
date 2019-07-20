@@ -13,18 +13,21 @@ var block_types = {0:{"top":Vector2(0,0),"bottom":Vector2(2,0),"left":Vector2(1,
 				  1:{"top":Vector2(3,0),"bottom":Vector2(3,0),"left":Vector2(3,0),
 					 "right":Vector2(3,0),"front":Vector2(3,0),"back":Vector2(3,0)},
 				  2:{"top":Vector2(4,0),"bottom":Vector2(4,0),"left":Vector2(4,0),
-				     "right":Vector2(4,0),"front":Vector2(4,0),"back":Vector2(4,0)},}
+				     "right":Vector2(4,0),"front":Vector2(4,0),"back":Vector2(4,0)},
+				  3:{"top":Vector2(5,0),"bottom":Vector2(5,0),"left":Vector2(5,0),
+				     "right":Vector2(5,0),"front":Vector2(5,0),"back":Vector2(5,0)},}
 
 func _ready():
-	var new_texture = ImageTexture.new()
-	new_texture = load("res://textures/textures.png")
-	new_texture.flags = 0
-	mat.albedo_texture = new_texture
-	mat.set_flag(SpatialMaterial.FLAG_DISABLE_AMBIENT_LIGHT,true)
-	mat.set_metallic(0)
-	mat.set_specular(0)
-	mat.set_roughness(0)
-	new_texture.set_flags(2)
+	mat = load("res://TextureMaterial.tres")
+	#var new_texture = ImageTexture.new()
+	#new_texture = load("res://textures/textures.png")
+	#new_texture.flags = 0
+	#mat.albedo_texture = new_texture
+	#mat.set_flag(SpatialMaterial.FLAG_DISABLE_AMBIENT_LIGHT,true)
+	#mat.set_metallic(0)
+	#mat.set_specular(0)
+	#mat.set_roughness(0)
+	#new_texture.set_flags(2)
 
 func get_texture_atlas_uvs(size,pos):
 	#called in thread
@@ -407,7 +410,7 @@ func generate_chunk(a):
 	var n = 0
 
 	noise.seed = game.get("generation_seed")
-	noise.octaves = 3
+	noise.octaves = 3#3
 	noise.period = 25
 	noise.persistence = 0.3
 	for i in range(16):
@@ -418,7 +421,12 @@ func generate_chunk(a):
 				n+=0.5
 				var thresh = pow(0.95,(j+(chunk_pos[1]*16)))
 				if n < thresh:
-					list.append([[i,j,k],0])
+					if (j+(chunk_pos[1]*16))<14:
+						list.append([[i,j,k],2])
+					else:
+						list.append([[i,j,k],0])
+				elif (j+(chunk_pos[1]*16))<12:
+					list.append([[i,j,k],3])
 
 	calc_chunk(list)
 
@@ -432,6 +440,6 @@ func generate_chunk(a):
 	#call_deferred('render_chunk')
 	call_deferred('gen_chunk_collision')
 	
-	#a.call_deferred( 'wait_to_finish' )
+	a.call_deferred( 'wait_to_finish' )
 
 	

@@ -1,7 +1,6 @@
 extends Node
 
 var thread_chunking = Thread.new()
-
 var generation_seed = 0
 var player_chunk = Vector3(0,0,0)
 var chunk_dict = {}
@@ -14,31 +13,12 @@ var player_chunk_pos = Vector3(0,0,0)
 var chunk_manager_init = false
 
 
-onready var gen_mutex = Mutex.new()
+onready var chunk_mutex = Mutex.new()
 onready var player_raycast = get_node("Player/Camera/RayCast")
 
 func _ready():
 	randomize()
 	generation_seed = randi()
-	thread_chunking.start(self,'chunking',thread_chunking)
-
-
-func chunking(thread):
-	var t = Timer.new()
-	while true:
-		var r = gen_mutex.try_lock()
-		if r!=ERR_BUSY:
-			if len(gen_queue)>0:
-				var c = gen_queue[0]
-				gen_queue.remove(0)
-				gen_mutex.unlock()
-				c.generate_chunk(thread)
-			elif len(gen_queue)==0:
-				gen_mutex.unlock()
-			else:
-				gen_mutex.unlock()
-				
-
 			
 
 
@@ -145,9 +125,7 @@ func place_chunk(c):
 		chunk_dict[c] = chunk
 		get_node("Chunks").add_child(chunk)
 		
-		gen_mutex.lock()
-		gen_queue.append(chunk)
-		gen_mutex.unlock()
+		thread_chunking.start(chunk,'generate_chunk',thread_chunking)
 		#chunk.generate_chunk(thread_chunking)
 
 var exit = false
@@ -170,72 +148,80 @@ var delete_list = []
 
 func chunk_manager():
 	
-	if len(chunk_queue)>0:
-		var c = chunk_queue[0]
-		chunk_queue.remove(0)
-		place_chunk(c)
-		
 	
-	if len(delete_list)!=0:
-		if delete_list[0] in chunk_dict:
-			chunk_dict[delete_list[0]].queue_free()
-		chunk_dict.erase(delete_list[0])
-		delete_list.remove(0)
-	if done == false:
-		while(count_chunks<chunk_num):
-			if vert_count<vert_num:
-				chunk_list.append(chunk_on)
-				chunk_on.y+=1
-				vert_count+=1
-			else:
-				vert_count = 0
-				chunk_on.y = 0
-				if count_chunks<chunk_num:
-					count_chunks+=1
-					count+=1
-					if dir==0:
-						chunk_on.z+=1
-					if dir==1:
-						chunk_on.x+=1
-					if dir==2:
-						chunk_on.z-=1
-					if dir==3:
-						chunk_on.x-=1
-					if count==num:
-						count = 0
-						if twice == true:
-							num+=1
-							twice = false
-						else:
-							twice = true
-						if dir<3:
-							dir+=1
-						else:
-							dir=0
-		for c in chunk_list:
-			chunk_queue.append(c)
+	if not thread_chunking.is_active():
+		if len(delete_list)!=0:
+			if delete_list[0] in chunk_dict:
+				chunk_dict[delete_list[0]].queue_free()
+			chunk_dict.erase(delete_list[0])
+			delete_list.remove(0)
+
+		if done == false:
+			while(count_chunks<chunk_num):
+				if vert_count<vert_num:
+					chunk_list.append(chunk_on)
+					chunk_on.y+=1
+					vert_count+=1
+				else:
+					vert_count = 0
+					chunk_on.y = 0
+					if count_chunks<chunk_num:
+						count_chunks+=1
+						count+=1
+						if dir==0:
+							chunk_on.z+=1
+						if dir==1:
+							chunk_on.x+=1
+						if dir==2:
+							chunk_on.z-=1
+						if dir==3:
+							chunk_on.x-=1
+						if count==num:
+							count = 0
+							if twice == true:
+								num+=1
+								twice = false
+							else:
+								twice = true
+							if dir<3:
+								dir+=1
+							else:
+								dir=0
+			for c in chunk_list:
+				chunk_queue.append(c)
+			
+			for c in chunk_dict:
+				if not c in chunk_list:
+					delete_list.append(c)
+			done = true
+	
+		elif not (prev_player_chunk.x==player_chunk.x and prev_player_chunk.z==player_chunk.z):
+			done = false
+			chunk_queue = []
+			copied = false
+			chunk_list_copy = []
+			chunk_list = []
+			prev_player_chunk = player_chunk
+			vert_count = 0
+			dir = 0
+			count = 0
+			num = 1
+			twice = false
+			chunk_on = Vector3(0,0,0)
+			count_chunks = 0
+			init_chunk = false
+			chunk_on.x = player_chunk.x
+			chunk_on.z = player_chunk.z
+			
+	if not thread_chunking.is_active():
+		if len(chunk_queue)>0:
+			var c = chunk_queue[0]
+			chunk_queue.remove(0)
+			place_chunk(c)
+
 		
-		for c in chunk_dict:
-			if not c in chunk_list:
-				delete_list.append(c)
-		done = true
-	elif not (prev_player_chunk.x==player_chunk.x and prev_player_chunk.z==player_chunk.z):
-		done = false
-		chunk_queue = []
-		copied = false
-		chunk_list_copy = []
-		chunk_list = []
-		prev_player_chunk = player_chunk
-		vert_count = 0
-		dir = 0
-		count = 0
-		num = 1
-		twice = false
-		chunk_on = Vector3(0,0,0)
-		count_chunks = 0
-		init_chunk = false
-		chunk_on.x = player_chunk.x
-		chunk_on.z = player_chunk.z
+
+	
 
 			
 			
