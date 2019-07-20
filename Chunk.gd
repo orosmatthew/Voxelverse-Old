@@ -213,8 +213,9 @@ func render_chunk(in_thread=false):
 	surface_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
 	surface_tool.set_material(mat)
 	
-	
+
 	for v in vertices.size(): 
+		surface_tool.add_color(Color(1, 1, 1))
 		surface_tool.add_uv(uvs[v])
 		surface_tool.add_vertex(vertices[v])
 	surface_tool.generate_normals()
