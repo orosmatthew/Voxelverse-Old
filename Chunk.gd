@@ -19,25 +19,14 @@ var block_types = {0:{"top":Vector2(0,0),"bottom":Vector2(2,0),"left":Vector2(1,
 
 func _ready():
 	mat = load("res://TextureMaterial.tres")
-	#var new_texture = ImageTexture.new()
-	#new_texture = load("res://textures/textures.png")
-	#new_texture.flags = 0
-	#mat.albedo_texture = new_texture
-	#mat.set_flag(SpatialMaterial.FLAG_DISABLE_AMBIENT_LIGHT,true)
-	#mat.set_metallic(0)
-	#mat.set_specular(0)
-	#mat.set_roughness(0)
-	#new_texture.set_flags(2)
 
 func get_texture_atlas_uvs(size,pos):
-	#called in thread
 	var offset = Vector2(pos.x/size.x,pos.y/size.y)
 	var one = Vector2(offset.x+(1/size.x),offset.y+(1/size.y))
 	var zero = Vector2(offset.x,offset.y)
 	return [zero,one]
 
 func get_face(orient,x,y,z,t=0):
-	#called in thread
 	var vertices = []
 	var uvs = []
 	var texture_atlas_size = Vector2(8,8)
@@ -129,7 +118,7 @@ func get_face(orient,x,y,z,t=0):
 	return [vertices,uvs]
 
 func calc_chunk(order_list):
-	#to be called in thread
+
 	var vertices = []
 	var uvs = []
 	var temp_dict = {}
@@ -141,10 +130,6 @@ func calc_chunk(order_list):
 		var y = order[0][1]
 		var z = order[0][2]
 		var t = order[1]
-		#var bc = block_class.instance()
-		#get_node("Blocks").call_deferred('add_child',bc)
-		#temp_dict[Vector3(x,y,z)] = bc
-		#temp_dict[Vector3(x,y,z)].type = t
 		temp_dict[Vector3(x,y,z)] = {"type":t,"vertices":[],"uvs":[]}
 		
 		
@@ -164,7 +149,6 @@ func calc_chunk(order_list):
 		var x = b.x
 		var y = b.y
 		var z = b.z
-		#var t = temp_dict[b].type
 		var t = temp_dict[b]["type"]
 		var adj_name_list = {"top":Vector3(x,y+1,z),"bottom":Vector3(x,y-1,z),
 						"front":Vector3(x,y,z+1),"back":Vector3(x,y,z-1),
@@ -173,8 +157,6 @@ func calc_chunk(order_list):
 		for n in adj_name_list:
 			if not adj_name_list[n] in temp_dict:
 				var return_stuff = get_face(n,x,y,z,t)
-				#temp_dict[b].vertices.append(return_stuff[0])
-				#temp_dict[b].uvs.append(return_stuff[1])
 				temp_dict[b]["vertices"].append(return_stuff[0])
 				temp_dict[b]["uvs"].append(return_stuff[1])
 	
@@ -185,7 +167,7 @@ func calc_chunk(order_list):
 
 
 func render_chunk(in_thread=false):
-	#called in main thread
+
 	self.global_transform[3][0] = chunk_pos[0]*16
 	self.global_transform[3][1] = chunk_pos[1]*16 
 	self.global_transform[3][2] = chunk_pos[2]*16
@@ -194,12 +176,10 @@ func render_chunk(in_thread=false):
 	var vertices = []
 	var uvs = []
 	for b in block_dict:
-		#for v in block_dict[b].vertices:
 		for v in block_dict[b]["vertices"]:
 			for v1 in v:
 				vertices.append(v1)
 		for u in block_dict[b].uvs:
-		#for u in block_dict[b]["uvs"]:
 			for u1 in u:
 				uvs.append(u1)
 	if len(vertices)==0 or len(uvs)==0:
@@ -233,11 +213,9 @@ func render_chunk(in_thread=false):
 	
 	
 func gen_chunk_collision():
-	#called in main thread
 	var collision_verts = []
 
 	for b in block_dict:
-		#for v in block_dict[b].collision_vertices:
 		for v in block_dict[b]["collision_vertices"]:
 			for v1 in v:
 				collision_verts.append(v1)
@@ -258,8 +236,6 @@ func gen_chunk_collision():
 
 
 func place_block(block_vect,type):
-	#called on main thread
-
 	if block_vect in block_dict:
 		return
 	block_dict[block_vect] = {"type":type}
@@ -332,8 +308,6 @@ func place_block(block_vect,type):
 	gen_chunk_collision()
 
 func remove_block(block_vect):
-	#called in main thread
-
 	if not block_vect in block_dict:
 		return
 	block_dict.erase(block_vect)
@@ -405,13 +379,11 @@ func remove_block(block_vect):
 	gen_chunk_collision()
 
 func generate_chunk(a):
-	#to be called in thread
-	
 	var list = []
 	var n = 0
 
 	noise.seed = game.get("generation_seed")
-	noise.octaves = 3#3
+	noise.octaves = 3
 	noise.period = 25
 	noise.persistence = 0.3
 	for i in range(16):
@@ -420,7 +392,6 @@ func generate_chunk(a):
 				n = noise.get_noise_3d((i+(chunk_pos[0]*16)),(j+(chunk_pos[1]*16)),(k+(chunk_pos[2]*16)))
 				n/=2
 				n+=0.5
-				#95
 				var thresh = pow(0.955,(j+(chunk_pos[1]*16)))
 				if n < thresh:
 					if (j+(chunk_pos[1]*16))<14:
@@ -432,14 +403,10 @@ func generate_chunk(a):
 
 	calc_chunk(list)
 
-	#for b in block_dict:
-		#block_dict[b].set_collision_vertices()
 	for b in block_dict:
 		block_dict[b]["collision_vertices"] = block_dict[b]["vertices"]
 	
 	render_chunk(true)
-	#gen_chunk_collision(true)
-	#call_deferred('render_chunk')
 	call_deferred('gen_chunk_collision')
 	
 	a.call_deferred( 'wait_to_finish' )

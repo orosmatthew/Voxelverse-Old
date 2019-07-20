@@ -126,7 +126,7 @@ func place_chunk(c):
 		get_node("Chunks").add_child(chunk)
 		
 		thread_chunking.start(chunk,'generate_chunk',thread_chunking)
-		#chunk.generate_chunk(thread_chunking)
+
 
 var exit = false
 var copied = false
@@ -141,7 +141,7 @@ var num = 1
 var twice = false
 var chunk_on = Vector3(0,0,0)
 var count_chunks = 0
-var chunk_num = pow(15,2)#15
+var chunk_num = pow(15,2)
 var done = false
 var init_chunk = false
 var delete_list = []
