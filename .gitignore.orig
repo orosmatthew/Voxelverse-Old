@@ -1,4 +1,7 @@
+<<<<<<< HEAD
+=======
 
+>>>>>>> Voxelverse/master
 # Godot-specific ignores
 .import/
 export.cfg
