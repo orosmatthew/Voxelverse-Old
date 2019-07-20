@@ -1,6 +1,0 @@
-BlockMemoryHandler
-- existChunk: true or false
-- existBlock: true or false
-- getBlockData
-- setBlockData
-
