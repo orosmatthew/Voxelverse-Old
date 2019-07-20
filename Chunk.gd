@@ -419,7 +419,8 @@ func generate_chunk(a):
 				n = noise.get_noise_3d((i+(chunk_pos[0]*16)),(j+(chunk_pos[1]*16)),(k+(chunk_pos[2]*16)))
 				n/=2
 				n+=0.5
-				var thresh = pow(0.95,(j+(chunk_pos[1]*16)))
+				#95
+				var thresh = pow(0.955,(j+(chunk_pos[1]*16)))
 				if n < thresh:
 					if (j+(chunk_pos[1]*16))<14:
 						list.append([[i,j,k],2])
