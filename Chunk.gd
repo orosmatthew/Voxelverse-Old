@@ -7,6 +7,7 @@ var mat = SpatialMaterial.new()
 var mesh_node
 var block_class
 var static_node
+var temp_dict_2 = {}
 var block_dict = {}
 var block_types = {0:{"top":Vector2(0,0),"bottom":Vector2(2,0),"left":Vector2(1,0),
 					 "right":Vector2(1,0),"front":Vector2(1,0),"back":Vector2(1,0)},
@@ -132,7 +133,6 @@ func calc_chunk(order_list):
 		var t = order[1]
 		temp_dict[Vector3(x,y,z)] = {"type":t,"vertices":[],"uvs":[]}
 		
-		
 	var adj_chunk_list = {"top":false,"bottom":false,
 						"front":false,"back":false,
 						"right":false,"left":false}
@@ -168,11 +168,9 @@ func calc_chunk(order_list):
 
 func render_chunk(in_thread=false):
 
-	self.global_transform[3][0] = chunk_pos[0]*16
-	self.global_transform[3][1] = chunk_pos[1]*16 
-	self.global_transform[3][2] = chunk_pos[2]*16
 	
-
+	
+	mat = load("res://TextureMaterial.tres")
 	var vertices = []
 	var uvs = []
 	for b in block_dict:
@@ -378,11 +376,12 @@ func remove_block(block_vect):
 		static_node.queue_free()
 	gen_chunk_collision()
 
-func generate_chunk(a):
+func generate_chunk(a,gen_seed):
+
 	var list = []
 	var n = 0
 
-	noise.seed = game.get("generation_seed")
+	noise.seed = gen_seed
 	noise.octaves = 3
 	noise.period = 25
 	noise.persistence = 0.3
@@ -406,9 +405,8 @@ func generate_chunk(a):
 	for b in block_dict:
 		block_dict[b]["collision_vertices"] = block_dict[b]["vertices"]
 	
-	render_chunk(true)
-	call_deferred('gen_chunk_collision')
+	render_chunk()
+	gen_chunk_collision()
 	
-	a.call_deferred( 'wait_to_finish' )
 
 	

@@ -12,7 +12,6 @@ var player_block_pos = Vector3(0,0,0)
 var player_chunk_pos = Vector3(0,0,0)
 var chunk_manager_init = false
 
-
 onready var chunk_mutex = Mutex.new()
 onready var player_raycast = get_node("Player/Camera/RayCast")
 
@@ -20,6 +19,13 @@ func _ready():
 	randomize()
 	generation_seed = randi()
 			
+			
+			
+func done_chunk_loading(chunk):
+	get_node("Chunks").add_child(chunk)
+	chunk.global_transform[3][0] = chunk.chunk_pos[0]*16
+	chunk.global_transform[3][1] = chunk.chunk_pos[1]*16 
+	chunk.global_transform[3][2] = chunk.chunk_pos[2]*16
 
 
 func _process(delta):
@@ -116,6 +122,11 @@ func _process(delta):
 	
 	
 	
+func load_chunk(arr):
+	arr[0].generate_chunk(arr[1],arr[2])
+	call_deferred("done_chunk_loading", arr[0])
+	arr[1].call_deferred( 'wait_to_finish' )
+	
 func place_chunk(c):
 	if not c in chunk_dict:
 		var chunk = load("res://Chunk.tscn").instance()
@@ -123,10 +134,9 @@ func place_chunk(c):
 		chunk.set_name(str(c.x)+" "+str(c.y)+" "+str(c.z))
 		chunk.block_class = load("res://Block.tscn")
 		chunk_dict[c] = chunk
-		get_node("Chunks").add_child(chunk)
-		
-		thread_chunking.start(chunk,'generate_chunk',thread_chunking)
 
+		thread_chunking.start(self,'load_chunk',[chunk,thread_chunking,generation_seed])
+		
 
 var exit = false
 var copied = false
