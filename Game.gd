@@ -227,7 +227,9 @@ func chunk_manager():
 		if len(chunk_queue)>0:
 			var c = chunk_queue[0]
 			chunk_queue.remove(0)
+			
 			place_chunk(c)
+			
 
 		
 

@@ -377,7 +377,7 @@ func remove_block(block_vect):
 	gen_chunk_collision()
 
 func generate_chunk(a,gen_seed):
-
+	var start_time = OS.get_ticks_msec()
 	var list = []
 	var n = 0
 
@@ -407,6 +407,6 @@ func generate_chunk(a,gen_seed):
 	
 	render_chunk()
 	gen_chunk_collision()
-	
+	print("Elapsed time: ", OS.get_ticks_msec() - start_time)
 
 	
