@@ -3,7 +3,7 @@ extends Spatial
 var chunk_pos = Vector3(0,0,0)
 var noise = OpenSimplexNoise.new()
 onready var game = get_tree().get_root().get_node("Game")
-var mat = SpatialMaterial.new()
+#var mat = SpatialMaterial.new()
 var mesh_node
 var chunk_mesh
 var block_class
@@ -12,6 +12,8 @@ var temp_dict_2 = {}
 var block_dict = {}
 var blocks =  {}
 var count = 0
+var texture_atlas_size = Vector2(8,8)
+var mat = load("res://TextureMaterial.tres")
 
 var adjacent_blocks = {
 	Side.front  : Vector3(0,0,1),
@@ -42,15 +44,89 @@ enum Side {
 }
 
 func _ready():
-	mat = load("res://TextureMaterial.tres")
+	pass
 
 func get_texture_atlas_uvs(size,pos):
 	var offset = Vector2(pos.x/size.x,pos.y/size.y)
-	var one = Vector2(offset.x+(1/size.x),offset.y+(1/size.y))
-	var zero = Vector2(offset.x,offset.y)
-	return [zero,one]
+	var bottom_right = Vector2(offset.x+(1/size.x),offset.y+(1/size.y))
+	var top_left = Vector2(offset.x,offset.y)
+	var top_right = Vector2(offset.x+(1/size.x),offset.y)
+	var bottom_left = Vector2(offset.x,offset.y+(1/size.y))
+	return [top_left, top_right, bottom_left, bottom_right]
 
 
+func get_cube_uvs(orient):
+	var uv_array = []
+	
+	if orient==Side.front:
+		var coordinates = get_texture_atlas_uvs(texture_atlas_size,Vector2(1,0))
+		uv_array = [
+			coordinates[0],
+			coordinates[3],
+			coordinates[2],
+			
+			coordinates[1],
+			coordinates[3],
+			coordinates[0],
+		]
+	if orient==Side.back:
+		var coordinates = get_texture_atlas_uvs(texture_atlas_size,Vector2(1,0))
+		uv_array = [
+			coordinates[0],
+			coordinates[1],
+			coordinates[3],
+			
+			coordinates[0],
+			coordinates[3],
+			coordinates[2],
+		]
+	if orient==Side.right:
+		var coordinates = get_texture_atlas_uvs(texture_atlas_size,Vector2(1,0))
+		uv_array = [
+			coordinates[0],
+			coordinates[1],
+			coordinates[3],
+			
+			coordinates[3],
+			coordinates[2],
+			coordinates[0],
+		]
+	if orient==Side.left:
+		var coordinates = get_texture_atlas_uvs(texture_atlas_size,Vector2(1,0))
+		uv_array = [
+			coordinates[2],
+			coordinates[1],
+			coordinates[3],
+			
+			coordinates[2],
+			coordinates[0],
+			coordinates[1],
+		]
+	if orient==Side.top:
+		var coordinates = get_texture_atlas_uvs(texture_atlas_size,Vector2(0,0))
+		uv_array = [
+			coordinates[3],
+			coordinates[0],
+			coordinates[1],
+			
+			coordinates[3],
+			coordinates[2],
+			coordinates[0],
+		]
+	if orient==Side.bottom:
+		var coordinates = get_texture_atlas_uvs(texture_atlas_size,Vector2(2,0))
+		uv_array = [
+			coordinates[2],
+			coordinates[0],
+			coordinates[1],
+			
+			coordinates[2],
+			coordinates[1],
+			coordinates[3],
+		]
+		
+	return uv_array
+		
 
 func get_cube_vertices(orient):
 	
@@ -127,6 +203,7 @@ func update_chunk(update_blocks=null):
 		if not block in block_dict:
 			continue
 		block_dict[block]["v"] = []
+		block_dict[block]["u"] = []
 		
 		var x = block.x
 		var y = block.y
@@ -134,14 +211,19 @@ func update_chunk(update_blocks=null):
 		for s in adjacent_blocks:
 			if not block_dict.has((adjacent_blocks[s]+block)):
 				var vertices = get_cube_vertices(s)
-		
+
 				for v in vertices:
-		
 					var v2 = v
 					v2.x+=x
 					v2.y+=y
 					v2.z+=z
 					block_dict[block]["v"].append(v2)
+					
+				var uvs = get_cube_uvs(s)
+				
+				for u in uvs:
+					block_dict[block]["u"].append(u)
+				
 
 	render_chunk()
 	gen_chunk_collision()
@@ -153,148 +235,6 @@ func display_chunk():
 	add_child(chunk_mesh)
 
 
-
-
-
-func get_face(orient,x,y,z,t=0):
-	var vertices = []
-	var uvs = []
-	var texture_atlas_size = Vector2(8,8)
-	
-	if orient == "top":
-		var uv_offsets = get_texture_atlas_uvs(texture_atlas_size,block_types[t]["top"])
-		print(uv_offsets)
-		vertices.append(Vector3(x,1+y,z))
-		vertices.append(Vector3(1+x,1+y,z))
-		vertices.append(Vector3(x,1+y,1+z))
-		uvs.append(Vector2(uv_offsets[0].x,uv_offsets[0].y))
-		uvs.append(Vector2(uv_offsets[1].x,uv_offsets[0].y))
-		uvs.append(Vector2(uv_offsets[0].x,uv_offsets[1].y))
-		vertices.append(Vector3(1+x,1+y,z))
-		vertices.append(Vector3(1+x,1+y,1+z))
-		vertices.append(Vector3(x,1+y,1+z))
-		uvs.append(Vector2(uv_offsets[1].x,uv_offsets[0].y))
-		uvs.append(Vector2(uv_offsets[1].x,uv_offsets[1].y))
-		uvs.append(Vector2(uv_offsets[0].x,uv_offsets[1].y))
-	elif orient == "bottom":
-		var uv_offsets = get_texture_atlas_uvs(texture_atlas_size,block_types[t]["bottom"])
-		vertices.append(Vector3(x,y,1+z))
-		vertices.append(Vector3(1+x,y,1+z))
-		vertices.append(Vector3(x,y,z))
-		uvs.append(Vector2(uv_offsets[0].x,uv_offsets[0].y))
-		uvs.append(Vector2(uv_offsets[1].x,uv_offsets[0].y))
-		uvs.append(Vector2(uv_offsets[0].x,uv_offsets[1].y))
-		vertices.append(Vector3(1+x,y,1+z))
-		vertices.append(Vector3(1+x,y,z))
-		vertices.append(Vector3(x,y,z))
-		uvs.append(Vector2(uv_offsets[1].x,uv_offsets[0].y))
-		uvs.append(Vector2(uv_offsets[1].x,uv_offsets[1].y))
-		uvs.append(Vector2(uv_offsets[0].x,uv_offsets[1].y))
-	elif orient == "left":
-		var uv_offsets = get_texture_atlas_uvs(texture_atlas_size,block_types[t]["left"])
-		vertices.append(Vector3(x,y,1+z))
-		vertices.append(Vector3(x,y,z))
-		vertices.append(Vector3(x,1+y,1+z))
-		uvs.append(Vector2(uv_offsets[1].x,uv_offsets[1].y))
-		uvs.append(Vector2(uv_offsets[0].x,uv_offsets[1].y))
-		uvs.append(Vector2(uv_offsets[1].x,uv_offsets[0].y))
-		vertices.append(Vector3(x,y,z))
-		vertices.append(Vector3(x,1+y,z))
-		vertices.append(Vector3(x,1+y,1+z))
-		uvs.append(Vector2(uv_offsets[0].x,uv_offsets[1].y))
-		uvs.append(Vector2(uv_offsets[0].x,uv_offsets[0].y))
-		uvs.append(Vector2(uv_offsets[1].x,uv_offsets[0].y))
-	elif orient == "right":
-		var uv_offsets = get_texture_atlas_uvs(texture_atlas_size,block_types[t]["right"])
-		vertices.append(Vector3(1+x,y,z))
-		vertices.append(Vector3(1+x,y,1+z))
-		vertices.append(Vector3(1+x,1+y,z))
-		uvs.append(Vector2(uv_offsets[1].x,uv_offsets[1].y))
-		uvs.append(Vector2(uv_offsets[0].x,uv_offsets[1].y))
-		uvs.append(Vector2(uv_offsets[1].x,uv_offsets[0].y))
-		vertices.append(Vector3(1+x,y,1+z))
-		vertices.append(Vector3(1+x,1+y,1+z))
-		vertices.append(Vector3(1+x,1+y,z))
-		uvs.append(Vector2(uv_offsets[0].x,uv_offsets[1].y))
-		uvs.append(Vector2(uv_offsets[0].x,uv_offsets[0].y))
-		uvs.append(Vector2(uv_offsets[1].x,uv_offsets[0].y))
-	elif orient == "front":
-		var uv_offsets = get_texture_atlas_uvs(texture_atlas_size,block_types[t]["front"])
-		vertices.append(Vector3(x,y,1+z))
-		vertices.append(Vector3(x,1+y,1+z))
-		vertices.append(Vector3(1+x,y,1+z))
-		uvs.append(Vector2(uv_offsets[0].x,uv_offsets[1].y))
-		uvs.append(Vector2(uv_offsets[0].x,uv_offsets[0].y))
-		uvs.append(Vector2(uv_offsets[1].x,uv_offsets[1].y))
-		vertices.append(Vector3(1+x,y,1+z))
-		vertices.append(Vector3(x,1+y,1+z))
-		vertices.append(Vector3(1+x,1+y,1+z))
-		uvs.append(Vector2(uv_offsets[1].x,uv_offsets[1].y))
-		uvs.append(Vector2(uv_offsets[0].x,uv_offsets[0].y))
-		uvs.append(Vector2(uv_offsets[1].x,uv_offsets[0].y))
-	elif orient == "back":
-		var uv_offsets = get_texture_atlas_uvs(texture_atlas_size,block_types[t]["back"])
-		vertices.append(Vector3(1+x,y,z))
-		vertices.append(Vector3(1+x,1+y,z))
-		vertices.append(Vector3(x,y,z))
-		uvs.append(Vector2(uv_offsets[0].x,uv_offsets[1].y))
-		uvs.append(Vector2(uv_offsets[0].x,uv_offsets[0].y))
-		uvs.append(Vector2(uv_offsets[1].x,uv_offsets[1].y))
-		vertices.append(Vector3(x,y,z))
-		vertices.append(Vector3(1+x,1+y,z))
-		vertices.append(Vector3(x,1+y,z))
-		uvs.append(Vector2(uv_offsets[1].x,uv_offsets[1].y))
-		uvs.append(Vector2(uv_offsets[0].x,uv_offsets[0].y))
-		uvs.append(Vector2(uv_offsets[1].x,uv_offsets[0].y))
-	return [vertices,uvs]
-
-func calc_chunk(order_list):
-
-	var vertices = []
-	var uvs = []
-	var temp_dict = {}
-
-	var adj_check_list = {}
-
-	for order in order_list:
-		var x = order[0][0]
-		var y = order[0][1]
-		var z = order[0][2]
-		var t = order[1]
-		temp_dict[Vector3(x,y,z)] = {"type":t,"vertices":[],"uvs":[]}
-		
-	var adj_chunk_list = {"top":false,"bottom":false,
-						"front":false,"back":false,
-						"right":false,"left":false}
-	var adj_chunk_pos = {"top":Vector3(chunk_pos.x,chunk_pos.y+1,chunk_pos.z),"bottom":Vector3(chunk_pos.x,chunk_pos.y-1,chunk_pos.z),
-						"front":Vector3(chunk_pos.x,chunk_pos.y,chunk_pos.z+1),"back":Vector3(chunk_pos.x,chunk_pos.y,chunk_pos.z-1),
-						"right":Vector3(chunk_pos.x+1,chunk_pos.y,chunk_pos.z),"left":Vector3(chunk_pos.x-1,chunk_pos.y,chunk_pos.z)}
-
-	var adj_chunk_checklist = []
-	
-	
-	
-	
-	for b in temp_dict:
-		var x = b.x
-		var y = b.y
-		var z = b.z
-		var t = temp_dict[b]["type"]
-		var adj_name_list = {"top":Vector3(x,y+1,z),"bottom":Vector3(x,y-1,z),
-						"front":Vector3(x,y,z+1),"back":Vector3(x,y,z-1),
-						"right":Vector3(x+1,y,z),"left":Vector3(x-1,y,z)}
-
-		for n in adj_name_list:
-			if not adj_name_list[n] in temp_dict:
-				var return_stuff = get_face(n,x,y,z,t)
-				temp_dict[b]["vertices"].append(return_stuff[0])
-				temp_dict[b]["uvs"].append(return_stuff[1])
-	
-
-	for b in temp_dict:
-		block_dict[Vector3(b[0],b[1],b[2])] = temp_dict[b]
-
-
 func render_chunk():
 	if chunk_mesh!=null:
 		chunk_mesh.free()
@@ -303,10 +243,26 @@ func render_chunk():
 	
 	surface_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
 	
+	var vertices = []
+	var uvs = []
+	
+	
+	
 	for b in block_dict:
 		var block = block_dict[b]
-		for v in block["v"]:
-			surface_tool.add_vertex(v)
+
+		for i in block["v"].size():
+			surface_tool.add_uv(block["u"][i])
+			surface_tool.add_vertex(block["v"][i])
+			
+		#vertices+=block["v"]
+		#uvs+=block["u"] 
+	
+	#for v in vertices.size(): 
+		#surface_tool.add_color(Color(1, 1, 1))
+		#surface_tool.add_uv(uvs[v])
+		#surface_tool.add_vertex(vertices[v])
+	
 	surface_tool.generate_normals()
 	surface_tool.set_material(mat)
 	var m = surface_tool.commit()
