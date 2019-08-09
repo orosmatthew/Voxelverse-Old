@@ -132,7 +132,6 @@ func place_chunk(c):
 		var chunk = load("res://Chunk.tscn").instance()
 		chunk.chunk_pos = c
 		chunk.set_name(str(c.x)+" "+str(c.y)+" "+str(c.z))
-		chunk.block_class = load("res://Block.tscn")
 		chunk_dict[c] = chunk
 
 		thread_chunking.start(self,'load_chunk',[chunk,thread_chunking,generation_seed])
@@ -158,7 +157,7 @@ var delete_list = []
 
 func chunk_manager():
 	
-	
+
 	if not thread_chunking.is_active():
 		if len(delete_list)!=0:
 			if delete_list[0] in chunk_dict:
@@ -222,7 +221,7 @@ func chunk_manager():
 			init_chunk = false
 			chunk_on.x = player_chunk.x
 			chunk_on.z = player_chunk.z
-			
+
 	if not thread_chunking.is_active():
 		if len(chunk_queue)>0:
 			var c = chunk_queue[0]
