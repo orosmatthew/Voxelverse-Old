@@ -1,6 +1,7 @@
 extends Node
 
 var thread_chunking = Thread.new()
+var thread_chunk_manager = Thread.new()
 var generation_seed = 0
 var player_chunk = Vector3(0,0,0)
 var chunk_dict = {}
@@ -21,6 +22,7 @@ func _ready():
 	randomize()
 	generation_seed = randi()
 	thread_chunking.start(self,"chunking",null)
+	thread_chunk_manager.start(self,"chunk_manager",null)
 			
 			
 func chunking(a):
@@ -41,19 +43,19 @@ func chunking(a):
 			
 func done_chunk_loading(chunk):
 	get_node("Chunks").add_child(chunk)
-	chunk.global_transform[3][0] = chunk.chunk_pos[0]*16
-	chunk.global_transform[3][1] = chunk.chunk_pos[1]*16 
-	chunk.global_transform[3][2] = chunk.chunk_pos[2]*16
+	chunk.global_transform[3][0] = chunk.chunk_pos[0]*8
+	chunk.global_transform[3][1] = chunk.chunk_pos[1]*8 
+	chunk.global_transform[3][2] = chunk.chunk_pos[2]*8
 
 func _process(delta):
 
 	get_node("fps_label").set_text(str(Engine.get_frames_per_second()))
 	player_pos = get_node("Player").global_transform[3]
-	player_chunk = Vector3(floor(player_pos[0]/16.0),floor(player_pos[1]/16.0),floor(player_pos[2]/16.0))
+	player_chunk = Vector3(floor(player_pos[0]/8.0),floor(player_pos[1]/8.0),floor(player_pos[2]/8.0))
 	player_block_pos = Vector3(floor(player_pos[0]),floor(player_pos[1]),floor(player_pos[2]))
-	player_chunk_pos = Vector3(int(player_block_pos.x)%16,
-									int(player_block_pos.y)%16,
-									int(player_block_pos.z)%16)
+	player_chunk_pos = Vector3(int(player_block_pos.x)%8,
+									int(player_block_pos.y)%8,
+									int(player_block_pos.z)%8)
 	
 	var block_exist = false
 	var break_block_pos = Vector3(0,0,0)
@@ -98,29 +100,29 @@ func _process(delta):
 				place_block_pos.z = int(ceil(raycast_pos.z))-1
 	
 	
-	var break_block_chunk = Vector3(floor(break_block_pos[0]/16.0),floor((break_block_pos[1])/16.0),floor(break_block_pos[2]/16.0))
+	var break_block_chunk = Vector3(floor(break_block_pos[0]/8.0),floor((break_block_pos[1])/8.0),floor(break_block_pos[2]/8.0))
 	var break_block_block_pos = Vector3(floor(break_block_pos[0]),floor(break_block_pos[1]),floor(break_block_pos[2]))
-	var break_block_chunk_pos = Vector3(int(break_block_block_pos.x)%16,
-										int(break_block_block_pos.y)%16,
-										int(break_block_block_pos.z)%16)
+	var break_block_chunk_pos = Vector3(int(break_block_block_pos.x)%8,
+										int(break_block_block_pos.y)%8,
+										int(break_block_block_pos.z)%8)
 	if break_block_chunk_pos.x<0:
-		break_block_chunk_pos.x=16+break_block_chunk_pos.x
+		break_block_chunk_pos.x=8+break_block_chunk_pos.x
 	if break_block_chunk_pos.y<0:
-		break_block_chunk_pos.y=16+break_block_chunk_pos.y
+		break_block_chunk_pos.y=8+break_block_chunk_pos.y
 	if break_block_chunk_pos.z<0:
-		break_block_chunk_pos.z=16+break_block_chunk_pos.z
+		break_block_chunk_pos.z=8+break_block_chunk_pos.z
 		
-	var place_block_chunk = Vector3(floor(place_block_pos[0]/16.0),floor((place_block_pos[1])/16.0),floor(place_block_pos[2]/16.0))
+	var place_block_chunk = Vector3(floor(place_block_pos[0]/8.0),floor((place_block_pos[1])/8.0),floor(place_block_pos[2]/8.0))
 	var place_block_block_pos = Vector3(floor(place_block_pos[0]),floor(place_block_pos[1]),floor(place_block_pos[2]))
-	var place_block_chunk_pos = Vector3(int(place_block_block_pos.x)%16,
-										int(place_block_block_pos.y)%16,
-										int(place_block_block_pos.z)%16)
+	var place_block_chunk_pos = Vector3(int(place_block_block_pos.x)%8,
+										int(place_block_block_pos.y)%8,
+										int(place_block_block_pos.z)%8)
 	if place_block_chunk_pos.x<0:
-		place_block_chunk_pos.x=16+place_block_chunk_pos.x
+		place_block_chunk_pos.x=8+place_block_chunk_pos.x
 	if place_block_chunk_pos.y<0:
-		place_block_chunk_pos.y=16+place_block_chunk_pos.y
+		place_block_chunk_pos.y=8+place_block_chunk_pos.y
 	if place_block_chunk_pos.z<0:
-		place_block_chunk_pos.z=16+place_block_chunk_pos.z
+		place_block_chunk_pos.z=8+place_block_chunk_pos.z
 	
 	if block_exist:
 		get_node("SelectBox").show()
@@ -135,7 +137,15 @@ func _process(delta):
 	if Input.is_action_just_pressed("place"):
 		if block_exist:
 			chunk_dict[place_block_chunk].place_block(place_block_chunk_pos,1)
-	chunk_manager()
+			
+			
+	if len(delete_list)!=0:
+		if delete_list[0] in chunk_dict:
+			#chunk_dict[delete_list[0]].call_deferred("queue_free")
+			chunk_dict[delete_list[0]].queue_free()
+		chunk_dict.erase(delete_list[0])
+		delete_list.remove(0)
+	#chunk_manager()
 	
 	
 func place_chunk(c):
@@ -153,86 +163,90 @@ var chunk_list_copy = []
 var chunk_list = []
 var prev_player_chunk = Vector3(0,0,0)
 var vert_count = 0
-var vert_num = 4
+var vert_num = 8
 var dir = 0
 var count = 0
 var num = 1
 var twice = false
 var chunk_on = Vector3(0,0,0)
 var count_chunks = 0
-var chunk_num = pow(16,2)
+var chunk_num = pow(32,2)
 var done = false
 var init_chunk = false
 var delete_list = []
+var change_queue = false
 
-func chunk_manager():
+func chunk_manager(a):
 	
-	
-	if len(delete_list)!=0:
-		if delete_list[0] in chunk_dict:
-			chunk_dict[delete_list[0]].queue_free()
-		chunk_dict.erase(delete_list[0])
-		delete_list.remove(0)
-	
-	
-	if done == false:
-		while(count_chunks<chunk_num):
-			if vert_count<vert_num:
-				chunk_list.append(chunk_on)
-				chunk_on.y+=1
-				vert_count+=1
-			else:
-				vert_count = 0
-				chunk_on.y = 0
-				if count_chunks<chunk_num:
-					count_chunks+=1
-					count+=1
-					if dir==0:
-						chunk_on.z+=1
-					if dir==1:
-						chunk_on.x+=1
-					if dir==2:
-						chunk_on.z-=1
-					if dir==3:
-						chunk_on.x-=1
-					if count==num:
-						count = 0
-						if twice == true:
-							num+=1
-							twice = false
-						else:
-							twice = true
-						if dir<3:
-							dir+=1
-						else:
-							dir=0
-		chunk_queue_mutex.lock()
-		chunk_queue = []
-		for c in chunk_list:
-			chunk_queue.append(c)
+	while true:
 		
-		for c in chunk_dict:
-			if not c in chunk_list:
-				delete_list.append(c)
-		chunk_queue_mutex.unlock()
-		done = true
-
-	elif not (prev_player_chunk.x==player_chunk.x and prev_player_chunk.z==player_chunk.z):
-		done = false
-		copied = false
-		chunk_list_copy = []
-		chunk_list = []
-		prev_player_chunk = player_chunk
-		vert_count = 0
-		dir = 0
-		count = 0
-		num = 1
-		twice = false
-		chunk_on = Vector3(0,0,0)
-		count_chunks = 0
-		init_chunk = false
-		chunk_on.x = player_chunk.x
-		chunk_on.z = player_chunk.z
+		
+		
+		
+		
+		if done == false:
+			while(count_chunks<chunk_num):
+				if vert_count<vert_num:
+					chunk_list.append(chunk_on)
+					chunk_on.y+=1
+					vert_count+=1
+				else:
+					vert_count = 0
+					chunk_on.y = 0
+					if count_chunks<chunk_num:
+						count_chunks+=1
+						count+=1
+						if dir==0:
+							chunk_on.z+=1
+						if dir==1:
+							chunk_on.x+=1
+						if dir==2:
+							chunk_on.z-=1
+						if dir==3:
+							chunk_on.x-=1
+						if count==num:
+							count = 0
+							if twice == true:
+								num+=1
+								twice = false
+							else:
+								twice = true
+							if dir<3:
+								dir+=1
+							else:
+								dir=0
+			done = true
+	
+		elif not (prev_player_chunk.x==player_chunk.x and prev_player_chunk.z==player_chunk.z):
+			done = false
+			copied = false
+			chunk_list_copy = []
+			chunk_list = []
+			prev_player_chunk = player_chunk
+			vert_count = 0
+			dir = 0
+			count = 0
+			num = 1
+			twice = false
+			chunk_on = Vector3(0,0,0)
+			count_chunks = 0
+			init_chunk = false
+			chunk_on.x = player_chunk.x
+			chunk_on.z = player_chunk.z
+			change_queue=false
+			
+		if done==true and change_queue == false:
+			var r = chunk_queue_mutex.try_lock()
+			if r != ERR_BUSY:
+				chunk_queue = []
+				for c in chunk_list:
+					chunk_queue.append(c)
+				
+				for c in chunk_dict:
+					if not c in chunk_list:
+						delete_list.append(c)
+				chunk_queue_mutex.unlock()
+				change_queue=true
 		
 
 		

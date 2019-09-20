@@ -299,20 +299,20 @@ func generate_chunk(gen_seed):
 	noise.period = 25
 	noise.persistence = 0.3
 
-	for i in range(16):
-		for j in range(16):
-			for k in range(16):
-				n = noise.get_noise_3d((i+(chunk_pos[0]*16)),(j+(chunk_pos[1]*16)),(k+(chunk_pos[2]*16)))
+	for i in range(8):
+		for j in range(8):
+			for k in range(8):
+				n = noise.get_noise_3d((i+(chunk_pos[0]*8)),(j+(chunk_pos[1]*8)),(k+(chunk_pos[2]*8)))
 				n/=2
 				n+=0.5
 				#0.955
-				var thresh = pow(0.955,(j+(chunk_pos[1]*16)))
+				var thresh = pow(0.955,(j+(chunk_pos[1]*8)))
 				if n < thresh:
-					if (j+(chunk_pos[1]*16))<14:
+					if (j+(chunk_pos[1]*8))<14:
 						block_dict[Vector3(i,j,k)] = {"t":2}
 					else:
 						block_dict[Vector3(i,j,k)] = {"t":0}
-				elif (j+(chunk_pos[1]*16))<12:
+				elif (j+(chunk_pos[1]*8))<12:
 					block_dict[Vector3(i,j,k)] = {"t":3}
 
 
