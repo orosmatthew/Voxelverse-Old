@@ -240,7 +240,6 @@ func chunk_manager(a):
 			change_queue=false
 			change_delete_list = false
 			
-<<<<<<< HEAD
 		
 		
 		var r1 = delete_list_mutex.try_lock()
@@ -286,6 +285,9 @@ func chunk_manager(a):
 				
 				
 		
+			
+			
+<<<<<<< HEAD
 =======
 	if not thread_chunking.is_active():
 		if len(chunk_queue)>0:

@@ -288,7 +288,7 @@ func remove_block(block_vect):
 	for s in adjacent_blocks:
 		update_blocks.append(block_vect+adjacent_blocks[s])
 	update_chunk(update_blocks)
-
+	var start_time = OS.get_ticks_msec()
 func generate_chunk(gen_seed):
 	var start_time = OS.get_ticks_msec()
 	var list = []

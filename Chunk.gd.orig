@@ -284,15 +284,40 @@ func place_block(block_vect,type):
 
 func remove_block(block_vect):
 	block_dict.erase(block_vect)
+<<<<<<< HEAD
 	var update_blocks = [block_vect]
 	for s in adjacent_blocks:
 		update_blocks.append(block_vect+adjacent_blocks[s])
 	update_chunk(update_blocks)
 
-<<<<<<< HEAD
 func generate_chunk(gen_seed):
-
 =======
+	var x = block_vect.x
+	var y = block_vect.y
+	var z = block_vect.z
+	var adj_name_list = {"top":Vector3(x,y+1,z),"bottom":Vector3(x,y-1,z),
+						"front":Vector3(x,y,z+1),"back":Vector3(x,y,z-1),
+						"right":Vector3(x+1,y,z),"left":Vector3(x-1,y,z)}
+	
+	var order_list = []
+	for a in adj_name_list:
+		if adj_name_list[a] in block_dict:
+			order_list.append([adj_name_list[a],block_dict[adj_name_list[a]]["type"]])
+		
+	
+	var vertices = []
+	var uvs = []
+	var temp_dict = {}
+
+	var adj_check_list = {}
+
+	for order in order_list:
+		x = order[0][0]
+		y = order[0][1]
+		z = order[0][2]
+		var t = order[1]
+		temp_dict[Vector3(x,y,z)] = {"type":t}
+
 	var adj_chunk_list = {"top":false,"bottom":false,
 						"front":false,"back":false,
 						"right":false,"left":false}
@@ -335,8 +360,8 @@ func generate_chunk(gen_seed):
 	gen_chunk_collision()
 
 func generate_chunk(a,gen_seed):
-	var start_time = OS.get_ticks_msec()
 >>>>>>> 91b5b4f380c84bf63acef11e85649dc003041b31
+	var start_time = OS.get_ticks_msec()
 	var list = []
 	var n = 0
 
@@ -364,7 +389,7 @@ func generate_chunk(a,gen_seed):
 
 <<<<<<< HEAD
 	update_chunk()
-	
+	#print("Elapsed time: ", OS.get_ticks_msec() - start_time)
 =======
 	for b in block_dict:
 		block_dict[b]["collision_vertices"] = block_dict[b]["vertices"]
