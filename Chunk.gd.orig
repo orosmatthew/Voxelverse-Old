@@ -289,8 +289,54 @@ func remove_block(block_vect):
 		update_blocks.append(block_vect+adjacent_blocks[s])
 	update_chunk(update_blocks)
 
+<<<<<<< HEAD
 func generate_chunk(gen_seed):
+
+=======
+	var adj_chunk_list = {"top":false,"bottom":false,
+						"front":false,"back":false,
+						"right":false,"left":false}
+	var adj_chunk_pos = {"top":Vector3(chunk_pos.x,chunk_pos.y+1,chunk_pos.z),"bottom":Vector3(chunk_pos.x,chunk_pos.y-1,chunk_pos.z),
+						"front":Vector3(chunk_pos.x,chunk_pos.y,chunk_pos.z+1),"back":Vector3(chunk_pos.x,chunk_pos.y,chunk_pos.z-1),
+						"right":Vector3(chunk_pos.x+1,chunk_pos.y,chunk_pos.z),"left":Vector3(chunk_pos.x-1,chunk_pos.y,chunk_pos.z)}
+
+	var adj_chunk_checklist = []
+	
+	for b in temp_dict:
+		temp_dict[b]["vertices"] = []
+		temp_dict[b]["uvs"] = []
+		x = b.x
+		y = b.y
+		z = b.z
+		var t = temp_dict[b]["type"]
+		adj_name_list = {"top":Vector3(x,y+1,z),"bottom":Vector3(x,y-1,z),
+						"front":Vector3(x,y,z+1),"back":Vector3(x,y,z-1),
+						"right":Vector3(x+1,y,z),"left":Vector3(x-1,y,z)}
+
+		for n in adj_name_list:
+			if not adj_name_list[n] in block_dict:
+				var return_stuff = get_face(n,x,y,z,t)
+				temp_dict[b]['vertices'].append(return_stuff[0])
+				temp_dict[b]['uvs'].append(return_stuff[1])
+	
+	for b in temp_dict:
+		block_dict[Vector3(b[0],b[1],b[2])] = temp_dict[b]
+	if mesh_node!=null:
+		mesh_node.queue_free()
+
+	render_chunk()
+
+
+	for b in block_dict:
+		block_dict[b].collision_vertices = block_dict[b].vertices
+
+	if static_node!=null:
+		static_node.queue_free()
+	gen_chunk_collision()
+
+func generate_chunk(a,gen_seed):
 	var start_time = OS.get_ticks_msec()
+>>>>>>> 91b5b4f380c84bf63acef11e85649dc003041b31
 	var list = []
 	var n = 0
 
@@ -316,7 +362,16 @@ func generate_chunk(gen_seed):
 					block_dict[Vector3(i,j,k)] = {"t":3}
 
 
+<<<<<<< HEAD
 	update_chunk()
-	#print("Elapsed time: ", OS.get_ticks_msec() - start_time)
+	
+=======
+	for b in block_dict:
+		block_dict[b]["collision_vertices"] = block_dict[b]["vertices"]
+	
+	render_chunk()
+	gen_chunk_collision()
+	print("Elapsed time: ", OS.get_ticks_msec() - start_time)
+>>>>>>> 91b5b4f380c84bf63acef11e85649dc003041b31
 
 	
