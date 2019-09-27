@@ -25,13 +25,13 @@ var adjacent_blocks = {
 	}
 
 var block_types = {0:{Side.top:Vector2(0,0),Side.bottom:Vector2(2,0),Side.left:Vector2(1,0),
-					 Side.right:Vector2(1,0),Side.front:Vector2(1,0),Side.back:Vector2(1,0)},
-				  1:{Side.top:Vector2(3,0),Side.bottom:Vector2(3,0),Side.left:Vector2(3,0),
-					 Side.right:Vector2(3,0),Side.front:Vector2(3,0),Side.back:Vector2(3,0)},
-				  2:{Side.top:Vector2(4,0),Side.bottom:Vector2(4,0),Side.left:Vector2(4,0),
-				     Side.right:Vector2(4,0),Side.front:Vector2(4,0),Side.back:Vector2(4,0)},
-				  3:{Side.top:Vector2(5,0),Side.bottom:Vector2(5,0),Side.left:Vector2(5,0),
-				     Side.right:Vector2(5,0),Side.front:Vector2(5,0),Side.back:Vector2(5,0)},}
+				Side.right:Vector2(1,0),Side.front:Vector2(1,0),Side.back:Vector2(1,0)},
+				1:{Side.top:Vector2(3,0),Side.bottom:Vector2(3,0),Side.left:Vector2(3,0),
+				Side.right:Vector2(3,0),Side.front:Vector2(3,0),Side.back:Vector2(3,0)},
+				2:{Side.top:Vector2(4,0),Side.bottom:Vector2(4,0),Side.left:Vector2(4,0),
+				Side.right:Vector2(4,0),Side.front:Vector2(4,0),Side.back:Vector2(4,0)},
+				3:{Side.top:Vector2(5,0),Side.bottom:Vector2(5,0),Side.left:Vector2(5,0),
+				Side.right:Vector2(5,0),Side.front:Vector2(5,0),Side.back:Vector2(5,0)},}
 
 
 enum Side {

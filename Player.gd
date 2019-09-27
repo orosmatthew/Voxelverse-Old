@@ -86,8 +86,8 @@ func _input(event):
 		self.rotate_y(deg2rad(-event.relative.x*mouse_sensitivity))
 		var mouse_change_x = -event.relative.y*mouse_sensitivity
 		if mouse_change_x + camera_angle_x < -90:
-		    mouse_change_x = -90-camera_angle_x
+			mouse_change_x = -90-camera_angle_x
 		elif mouse_change_x + camera_angle_x > 90:
-		    mouse_change_x = 90-camera_angle_x
+			mouse_change_x = 90-camera_angle_x
 		get_node("Camera").rotate_x(deg2rad(mouse_change_x))
 		camera_angle_x+=mouse_change_x

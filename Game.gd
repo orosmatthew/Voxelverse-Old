@@ -13,6 +13,8 @@ var player_block_pos = Vector3(0,0,0)
 var player_chunk_pos = Vector3(0,0,0)
 var chunk_manager_init = false
 var chunk_queue_mutex = Mutex.new()
+var delete_list_mutex = Mutex.new()
+var chunk_dict_mutex = Mutex.new()
 
 
 onready var chunk_mutex = Mutex.new()
@@ -40,9 +42,13 @@ func chunking(a):
 				
 			else:
 				chunk_queue_mutex.unlock()
+				OS.delay_msec(500)
 			
 func done_chunk_loading(chunk):
 	get_node("Chunks").add_child(chunk)
+	chunk_dict_mutex.lock()
+	chunk_dict[chunk.chunk_pos] = chunk
+	chunk_dict_mutex.unlock()
 	chunk.global_transform[3][0] = chunk.chunk_pos[0]*8
 	chunk.global_transform[3][1] = chunk.chunk_pos[1]*8 
 	chunk.global_transform[3][2] = chunk.chunk_pos[2]*8
@@ -133,29 +139,29 @@ func _process(delta):
 	
 	if Input.is_action_just_pressed("break"):
 		if block_exist:
+			chunk_dict_mutex.lock()
 			chunk_dict[break_block_chunk].remove_block(break_block_chunk_pos)
+			chunk_dict_mutex.unlock()
 	if Input.is_action_just_pressed("place"):
 		if block_exist:
+			chunk_dict_mutex.lock()
 			chunk_dict[place_block_chunk].place_block(place_block_chunk_pos,1)
-			
-			
-	if len(delete_list)!=0:
-		if delete_list[0] in chunk_dict:
-			#chunk_dict[delete_list[0]].call_deferred("queue_free")
-			chunk_dict[delete_list[0]].queue_free()
-		chunk_dict.erase(delete_list[0])
-		delete_list.remove(0)
-	#chunk_manager()
+			chunk_dict_mutex.unlock()
 	
 	
+	
+
 func place_chunk(c):
+	chunk_dict_mutex.lock()
 	if not c in chunk_dict:
+		chunk_dict_mutex.unlock()
 		var chunk = load("res://Chunk.tscn").instance()
 		chunk.chunk_pos = c
 		chunk.set_name(str(c.x)+" "+str(c.y)+" "+str(c.z))
-		chunk_dict[c] = chunk
 		chunk.generate_chunk(generation_seed)
 		return chunk
+	else:
+		chunk_dict_mutex.unlock()
 
 var exit = false
 var copied = false
@@ -170,20 +176,17 @@ var num = 1
 var twice = false
 var chunk_on = Vector3(0,0,0)
 var count_chunks = 0
-var chunk_num = pow(32,2)
+var chunk_num = pow(32,2)#32
 var done = false
 var init_chunk = false
 var delete_list = []
 var change_queue = false
+var change_delete_list = false
+var prev_chunk_list = chunk_list
 
 func chunk_manager(a):
 	
 	while true:
-		
-		
-		
-		
-		
 		if done == false:
 			while(count_chunks<chunk_num):
 				if vert_count<vert_num:
@@ -216,11 +219,12 @@ func chunk_manager(a):
 							else:
 								dir=0
 			done = true
-	
+		
 		elif not (prev_player_chunk.x==player_chunk.x and prev_player_chunk.z==player_chunk.z):
 			done = false
 			copied = false
 			chunk_list_copy = []
+			prev_chunk_list = chunk_list
 			chunk_list = []
 			prev_player_chunk = player_chunk
 			vert_count = 0
@@ -234,19 +238,52 @@ func chunk_manager(a):
 			chunk_on.x = player_chunk.x
 			chunk_on.z = player_chunk.z
 			change_queue=false
+			change_delete_list = false
 			
-		if done==true and change_queue == false:
+		
+		
+		var r1 = delete_list_mutex.try_lock()
+		if r1 != ERR_BUSY:
+			if len(delete_list)!=0:
+				var end = 0
+				chunk_dict_mutex.lock()
+				while len(delete_list)!=0:
+					if delete_list[0] in chunk_dict:
+						chunk_dict[delete_list[0]].call_deferred("queue_free")
+						end+=1
+					chunk_dict.erase(delete_list[0])
+					delete_list.remove(0)
+					if end >= 3:
+						break
+				chunk_dict_mutex.unlock()
+			delete_list_mutex.unlock()
+			
+		if done==true:
+			OS.delay_msec(100)
+			
+		if done==true and change_queue == false and change_delete_list == true:
 			var r = chunk_queue_mutex.try_lock()
 			if r != ERR_BUSY:
 				chunk_queue = []
 				for c in chunk_list:
 					chunk_queue.append(c)
 				
-				for c in chunk_dict:
-					if not c in chunk_list:
-						delete_list.append(c)
 				chunk_queue_mutex.unlock()
-				change_queue=true
+				change_queue = true
+		if done==true and change_delete_list == false:
+			var r = delete_list_mutex.try_lock()
+			if r != ERR_BUSY:
+				for c in prev_chunk_list:
+					if not c in chunk_list:
+						if not c in delete_list:
+							delete_list.append(c)
+				for c in chunk_list:
+					if c in delete_list:
+						delete_list.erase(c)
+				delete_list_mutex.unlock()
+				change_delete_list = true
+				
+				
 		
 
 		
