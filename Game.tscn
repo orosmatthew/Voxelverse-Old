@@ -28,7 +28,7 @@ shadow_enabled = true
 shadow_color = Color( 0.4, 0.4, 0.4, 1 )
 
 [node name="DirectionalLight2" type="DirectionalLight" parent="DirectionalLight"]
-transform = Transform( 1, -3.27826e-007, 2.98023e-007, -3.57628e-007, -1, -0.000697732, 2.98023e-007, 0.000697672, -1, 0, 0, 0 )
+transform = Transform( 1, -3.27826e-07, 2.98023e-07, -3.57628e-07, -1, -0.000697732, 2.98023e-07, 0.000697672, -1, 0, 0, 0 )
 light_energy = 0.25
 light_indirect_energy = 0.0
 light_specular = 0.0

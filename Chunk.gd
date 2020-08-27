@@ -24,13 +24,13 @@ var adjacent_blocks = {
 	Side.bottom : Vector3(0,-1,0),
 	}
 
-var block_types = {0:{Side.top:Vector2(0,0),Side.bottom:Vector2(2,0),Side.left:Vector2(1,0),
+var block_types = {1:{Side.top:Vector2(0,0),Side.bottom:Vector2(2,0),Side.left:Vector2(1,0),
 				Side.right:Vector2(1,0),Side.front:Vector2(1,0),Side.back:Vector2(1,0)},
-				1:{Side.top:Vector2(3,0),Side.bottom:Vector2(3,0),Side.left:Vector2(3,0),
+				2:{Side.top:Vector2(3,0),Side.bottom:Vector2(3,0),Side.left:Vector2(3,0),
 				Side.right:Vector2(3,0),Side.front:Vector2(3,0),Side.back:Vector2(3,0)},
-				2:{Side.top:Vector2(4,0),Side.bottom:Vector2(4,0),Side.left:Vector2(4,0),
+				3:{Side.top:Vector2(4,0),Side.bottom:Vector2(4,0),Side.left:Vector2(4,0),
 				Side.right:Vector2(4,0),Side.front:Vector2(4,0),Side.back:Vector2(4,0)},
-				3:{Side.top:Vector2(5,0),Side.bottom:Vector2(5,0),Side.left:Vector2(5,0),
+				4:{Side.top:Vector2(5,0),Side.bottom:Vector2(5,0),Side.left:Vector2(5,0),
 				Side.right:Vector2(5,0),Side.front:Vector2(5,0),Side.back:Vector2(5,0)},}
 
 
@@ -289,6 +289,30 @@ func remove_block(block_vect):
 		update_blocks.append(block_vect+adjacent_blocks[s])
 	update_chunk(update_blocks)
 	var start_time = OS.get_ticks_msec()
+
+
+func get_save_string(d):
+	var save_dict = {}
+	for i in range(8):
+		for j in range(8):
+			for k in range(8):
+				if d.has(Vector3(i,j,k)) == true:
+					save_dict[Vector3(i,j,k)] = d[Vector3(i,j,k)]["t"]
+				else:
+					save_dict[Vector3(i,j,k)] = 0
+	
+	var save_string = ""
+	
+	for i in range(8):
+		var line = ""
+		for j in range(8):
+			for k in range(8):
+				line+=(str(save_dict[Vector3(i,j,k)])+" ")
+		save_string += (line+"\n")
+	
+	return save_string
+		
+
 func generate_chunk(gen_seed):
 	var start_time = OS.get_ticks_msec()
 	var list = []
@@ -309,13 +333,45 @@ func generate_chunk(gen_seed):
 				var thresh = pow(0.955,(j+(chunk_pos[1]*8)))
 				if n < thresh:
 					if (j+(chunk_pos[1]*8))<14:
-						block_dict[Vector3(i,j,k)] = {"t":2}
+						block_dict[Vector3(i,j,k)] = {"t":3}
 					else:
-						block_dict[Vector3(i,j,k)] = {"t":0}
+						block_dict[Vector3(i,j,k)] = {"t":1}
 				elif (j+(chunk_pos[1]*8))<12:
-					block_dict[Vector3(i,j,k)] = {"t":3}
+					
+					block_dict[Vector3(i,j,k)] = {"t":4}
+	
+	var save_string = get_save_string(block_dict)
+	
+	var chunk_pos_string = str(chunk_pos.x)+" "+str(chunk_pos.y)+" "+str(chunk_pos.z)
 
-
+	var file = File.new()
+	file.open("res://world/"+chunk_pos_string+".dat", File.WRITE)
+	file.store_string(save_string)
+	file.close()
+	
+	block_dict = {}
+	
+	
+	
+	var file_open = File.new()
+	file_open.open("res://world/"+chunk_pos_string+".dat", File.READ)
+	var content = file_open.get_as_text()
+	file_open.close()
+	
+	var lines = content.split("\n")
+	var load_dict = {}
+	
+	for i in range(8):
+		var line = lines[i]
+		line = line.split(" ")
+		for j in range(8):
+			for k in range(8):
+				load_dict[Vector3(i,j,k)] = int(line[j*8+k])
+	
+	for b in load_dict.keys():
+		if load_dict[b] != 0:
+			block_dict[b] = {"t":load_dict[b]}
+	
 	update_chunk()
 	#print("Elapsed time: ", OS.get_ticks_msec() - start_time)
 

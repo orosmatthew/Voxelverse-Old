@@ -16,7 +16,6 @@ var chunk_queue_mutex = Mutex.new()
 var delete_list_mutex = Mutex.new()
 var chunk_dict_mutex = Mutex.new()
 
-
 onready var chunk_mutex = Mutex.new()
 onready var player_raycast = get_node("Player/Camera/RayCast")
 
@@ -25,7 +24,6 @@ func _ready():
 	generation_seed = randi()
 	thread_chunking.start(self,"chunking",null)
 	thread_chunk_manager.start(self,"chunk_manager",null)
-			
 			
 func chunking(a):
 	while true:
@@ -36,7 +34,7 @@ func chunking(a):
 				chunk_queue.remove(0)
 				chunk_queue_mutex.unlock()
 				var chunk = place_chunk(c)
-				
+		
 				if chunk!=null:
 					call_deferred("done_chunk_loading",chunk)
 				
@@ -136,7 +134,6 @@ func _process(delta):
 	else:
 		get_node("SelectBox").hide()
 
-	
 	if Input.is_action_just_pressed("break"):
 		if block_exist:
 			chunk_dict_mutex.lock()
@@ -147,9 +144,6 @@ func _process(delta):
 			chunk_dict_mutex.lock()
 			chunk_dict[place_block_chunk].place_block(place_block_chunk_pos,1)
 			chunk_dict_mutex.unlock()
-	
-	
-	
 
 func place_chunk(c):
 	chunk_dict_mutex.lock()
@@ -163,28 +157,30 @@ func place_chunk(c):
 	else:
 		chunk_dict_mutex.unlock()
 
-var exit = false
-var copied = false
-var chunk_list_copy = []
-var chunk_list = []
-var prev_player_chunk = Vector3(0,0,0)
-var vert_count = 0
-var vert_num = 8
-var dir = 0
-var count = 0
-var num = 1
-var twice = false
-var chunk_on = Vector3(0,0,0)
-var count_chunks = 0
-var chunk_num = pow(32,2)#32
-var done = false
-var init_chunk = false
-var delete_list = []
-var change_queue = false
-var change_delete_list = false
-var prev_chunk_list = chunk_list
+
 
 func chunk_manager(a):
+
+	var exit = false
+	var copied = false
+	var chunk_list_copy = []
+	var chunk_list = []
+	var prev_player_chunk = Vector3(0,0,0)
+	var vert_count = 0
+	var vert_num = 8
+	var dir = 0
+	var count = 0
+	var num = 1
+	var twice = false
+	var chunk_on = Vector3(0,0,0)
+	var count_chunks = 0
+	var chunk_num = pow(3,2)#32
+	var done = false
+	var init_chunk = false
+	var delete_list = []
+	var change_queue = false
+	var change_delete_list = false
+	var prev_chunk_list = chunk_list
 	
 	while true:
 		if done == false:
@@ -219,7 +215,7 @@ func chunk_manager(a):
 							else:
 								dir=0
 			done = true
-		
+		"""
 		elif not (prev_player_chunk.x==player_chunk.x and prev_player_chunk.z==player_chunk.z):
 			done = false
 			copied = false
@@ -239,7 +235,7 @@ func chunk_manager(a):
 			chunk_on.z = player_chunk.z
 			change_queue=false
 			change_delete_list = false
-			
+		"""
 		
 		
 		var r1 = delete_list_mutex.try_lock()
@@ -270,6 +266,7 @@ func chunk_manager(a):
 				
 				chunk_queue_mutex.unlock()
 				change_queue = true
+				
 		if done==true and change_delete_list == false:
 			var r = delete_list_mutex.try_lock()
 			if r != ERR_BUSY:
