@@ -2,8 +2,8 @@ extends Spatial
 
 var chunk_pos = Vector3(0,0,0)
 var noise = OpenSimplexNoise.new()
-onready var game = get_tree().get_root().get_node("Game")
 #var mat = SpatialMaterial.new()
+var game
 var mesh_node
 var chunk_mesh
 var block_class
@@ -195,7 +195,7 @@ func get_cube_vertices(orient):
 	return vertice_array
 		
 	
-func update_chunk(update_blocks=null):
+func update_chunk(update_blocks=null, in_chunk_check=false):
 	
 	if update_blocks==null:
 		update_blocks = block_dict.keys()
@@ -206,14 +206,30 @@ func update_chunk(update_blocks=null):
 		var x = block.x
 		var y = block.y
 		var z = block.z
-		for s in adjacent_blocks:
-			if not block_dict.has((adjacent_blocks[s]+block)):
-				block_dict[block]["a"].append(s)
+		if in_chunk_check == false:
+			for s in adjacent_blocks:
+				#if not block_dict.has((adjacent_blocks[s]+block)):
+				if game.query_block(local_to_global(adjacent_blocks[s]+block), false) == null:
+					block_dict[block]["a"].append(s)
+		else:
+			for s in adjacent_blocks:
+				if not block_dict.has((adjacent_blocks[s]+block)):
+					block_dict[block]["a"].append(s)
+				#if game.query_block(chunk_pos, adjacent_blocks[s]+block, false) == null:
+					
+				
 
 	render_chunk()
 	gen_chunk_collision()
 	display_chunk()
 	
+
+func local_to_global(pos):
+	var global_pos = Vector3()
+	global_pos.x = (chunk_pos.x * 8) + pos.x
+	global_pos.y = (chunk_pos.y * 8) + pos.y
+	global_pos.z = (chunk_pos.z * 8) + pos.z
+	return global_pos
 
 func display_chunk():
 	
@@ -313,11 +329,13 @@ func get_save_string(d):
 	return save_string
 		
 
-func generate_chunk(gen_seed):
+func generate_chunk(gen_seed, g):
 	var start_time = OS.get_ticks_msec()
 	var list = []
 	var n = 0
-
+	
+	game = g
+	
 	noise.seed = gen_seed
 	noise.octaves = 3
 	noise.period = 25
@@ -372,7 +390,7 @@ func generate_chunk(gen_seed):
 		if load_dict[b] != 0:
 			block_dict[b] = {"t":load_dict[b]}
 	
-	update_chunk()
+	#update_chunk(null, true)
 	#print("Elapsed time: ", OS.get_ticks_msec() - start_time)
 
 	

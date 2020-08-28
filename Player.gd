@@ -30,13 +30,16 @@ func _physics_process(delta):
 	if Input.is_action_pressed("sprint"):
 		accel = SPRINT_SPEED
 	elif Input.is_action_pressed("sneak"):
-		accel = SNEAK_SPEED
+		velocity.y=-8
+		#accel = SNEAK_SPEED
 	else:
 		accel = WALK_SPEED
 	if not is_on_floor():
-		velocity.y-=0.5
+		pass
+		#velocity.y-=0.5
 	velocity.x-=(velocity.x*FRICTION)
 	velocity.z-=(velocity.z*FRICTION)
+	velocity.y-=(velocity.y*FRICTION)
 	velo = Vector3(0,0,0)
 	var aim = self.get_rotation_degrees()
 	if Input.is_action_pressed("move_forward"):
@@ -51,6 +54,8 @@ func _physics_process(delta):
 	elif Input.is_action_pressed("move_right"):
 		velo.x+=cos(deg2rad(aim.y))
 		velo.z+=-sin(deg2rad(aim.y))
+		
+		
 	velocityGoal=velocityGoal.normalized()
 	if velo == Vector3(0,0,0):
 		velocityGoal=Vector3(0,0,0)
@@ -74,7 +79,7 @@ func _physics_process(delta):
 
 	velocityGoalPrev = velo
 	
-	if Input.is_action_pressed("move_up") and is_on_floor():
+	if Input.is_action_pressed("move_up"): #and is_on_floor():
 		velocity.y=8
 
 	velocity = self.move_and_slide(velocity, Vector3(0,1,0))

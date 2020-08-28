@@ -10,7 +10,7 @@
 script = ExtResource( 1 )
 
 [node name="Player" parent="." instance=ExtResource( 3 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 6.08324, 115.396, 2.13493 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 6.08324, 34.0472, 2.13493 )
 
 [node name="fps_label" type="Label" parent="."]
 margin_left = 12.0

@@ -47,9 +47,11 @@ func done_chunk_loading(chunk):
 	chunk_dict_mutex.lock()
 	chunk_dict[chunk.chunk_pos] = chunk
 	chunk_dict_mutex.unlock()
+	
 	chunk.global_transform[3][0] = chunk.chunk_pos[0]*8
 	chunk.global_transform[3][1] = chunk.chunk_pos[1]*8 
 	chunk.global_transform[3][2] = chunk.chunk_pos[2]*8
+	chunk.update_chunk()
 
 func _process(delta):
 
@@ -145,6 +147,29 @@ func _process(delta):
 			chunk_dict[place_block_chunk].place_block(place_block_chunk_pos,1)
 			chunk_dict_mutex.unlock()
 
+func local_to_global(pos, chunk_pos):
+	var global_pos = Vector3()
+	global_pos.x = (chunk_pos.x * 8) + pos.x
+	global_pos.y = (chunk_pos.y * 8) + pos.y
+	global_pos.z = (chunk_pos.z * 8) + pos.z
+	return global_pos
+	
+	
+func global_to_local(pos):
+	
+	var local_pos = Vector3(int(pos.x)%8,
+							int(pos.y)%8,
+							int(pos.z)%8)
+	
+	if local_pos.x<0:
+		local_pos.x=8+local_pos.x
+	if local_pos.y<0:
+		local_pos.y=8+local_pos.y
+	if local_pos.z<0:
+		local_pos.z=8+local_pos.z
+		
+	return local_pos
+
 func place_chunk(c):
 	chunk_dict_mutex.lock()
 	if not c in chunk_dict:
@@ -152,12 +177,32 @@ func place_chunk(c):
 		var chunk = load("res://Chunk.tscn").instance()
 		chunk.chunk_pos = c
 		chunk.set_name(str(c.x)+" "+str(c.y)+" "+str(c.z))
-		chunk.generate_chunk(generation_seed)
+		chunk.generate_chunk(generation_seed, self)
 		return chunk
 	else:
 		chunk_dict_mutex.unlock()
 
 
+func query_block(pos, disk):
+	
+	var chunk_pos = Vector3(floor(pos.x/8.0),floor(pos.y/8.0),floor(pos.z/8.0))
+	
+	pos = global_to_local(pos)
+	
+	chunk_dict_mutex.lock()
+	if chunk_pos in chunk_dict:
+		if pos in chunk_dict[chunk_pos].block_dict:
+			var r = chunk_dict[chunk_pos].block_dict[pos]
+			chunk_dict_mutex.unlock()
+			return r
+			
+		else:
+			chunk_dict_mutex.unlock()
+			return null
+	else:
+		chunk_dict_mutex.unlock()
+		return null
+	chunk_dict_mutex.unlock()
 
 func chunk_manager(a):
 
