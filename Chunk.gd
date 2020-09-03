@@ -264,6 +264,16 @@ func render_chunk():
 	mesh_instance.set_name("mesh")
 	chunk_mesh = mesh_instance
 
+func save_chunk():
+	var save_string = get_save_string(block_dict)
+				
+	var chunk_pos_string = str(chunk_pos.x)+" "+str(chunk_pos.y)+" "+str(chunk_pos.z)
+
+	var file = File.new()
+	file.open("res://world/"+chunk_pos_string+".dat", File.WRITE)
+	file.store_string(save_string)
+	file.close()
+	
 	
 func gen_chunk_collision():
 	if static_node!=null:
@@ -296,15 +306,16 @@ func place_block(block_vect,type):
 	var update_blocks = [block_vect]
 	for s in adjacent_blocks:
 		update_blocks.append(block_vect+adjacent_blocks[s])
-	update_chunk(update_blocks)
+	update_chunk(update_blocks, true)
+	save_chunk()
 
 func remove_block(block_vect):
 	block_dict.erase(block_vect)
 	var update_blocks = [block_vect]
 	for s in adjacent_blocks:
 		update_blocks.append(block_vect+adjacent_blocks[s])
-	update_chunk(update_blocks)
-	var start_time = OS.get_ticks_msec()
+	update_chunk(update_blocks, true)
+	save_chunk()
 
 
 func get_save_string(d):
@@ -330,6 +341,7 @@ func get_save_string(d):
 		
 
 func generate_chunk(gen_seed, g):
+	"""
 	var start_time = OS.get_ticks_msec()
 	var list = []
 	var n = 0
@@ -360,16 +372,16 @@ func generate_chunk(gen_seed, g):
 	
 	var save_string = get_save_string(block_dict)
 	
-	var chunk_pos_string = str(chunk_pos.x)+" "+str(chunk_pos.y)+" "+str(chunk_pos.z)
+	
 
 	var file = File.new()
 	file.open("res://world/"+chunk_pos_string+".dat", File.WRITE)
 	file.store_string(save_string)
 	file.close()
-	
+	"""
 	block_dict = {}
 	
-	
+	var chunk_pos_string = str(chunk_pos.x)+" "+str(chunk_pos.y)+" "+str(chunk_pos.z)
 	
 	var file_open = File.new()
 	file_open.open("res://world/"+chunk_pos_string+".dat", File.READ)
@@ -389,8 +401,8 @@ func generate_chunk(gen_seed, g):
 	for b in load_dict.keys():
 		if load_dict[b] != 0:
 			block_dict[b] = {"t":load_dict[b]}
-	
-	#update_chunk(null, true)
+			
+	update_chunk(null, true)
 	#print("Elapsed time: ", OS.get_ticks_msec() - start_time)
 
 	

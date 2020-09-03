@@ -15,6 +15,7 @@ var chunk_manager_init = false
 var chunk_queue_mutex = Mutex.new()
 var delete_list_mutex = Mutex.new()
 var chunk_dict_mutex = Mutex.new()
+var noise = OpenSimplexNoise.new()
 
 onready var chunk_mutex = Mutex.new()
 onready var player_raycast = get_node("Player/Camera/RayCast")
@@ -24,6 +25,7 @@ func _ready():
 	generation_seed = randi()
 	thread_chunking.start(self,"chunking",null)
 	thread_chunk_manager.start(self,"chunk_manager",null)
+	#generate_world()
 			
 func chunking(a):
 	while true:
@@ -33,6 +35,8 @@ func chunking(a):
 				var c = chunk_queue[0]
 				chunk_queue.remove(0)
 				chunk_queue_mutex.unlock()
+				
+				
 				var chunk = place_chunk(c)
 		
 				if chunk!=null:
@@ -51,7 +55,6 @@ func done_chunk_loading(chunk):
 	chunk.global_transform[3][0] = chunk.chunk_pos[0]*8
 	chunk.global_transform[3][1] = chunk.chunk_pos[1]*8 
 	chunk.global_transform[3][2] = chunk.chunk_pos[2]*8
-	chunk.update_chunk()
 
 func _process(delta):
 
@@ -204,6 +207,72 @@ func query_block(pos, disk):
 		return null
 	chunk_dict_mutex.unlock()
 
+func get_save_string(d):
+	var save_dict = {}
+	for i in range(8):
+		for j in range(8):
+			for k in range(8):
+				if d.has(Vector3(i,j,k)) == true:
+					save_dict[Vector3(i,j,k)] = d[Vector3(i,j,k)]["t"]
+				else:
+					save_dict[Vector3(i,j,k)] = 0
+	
+	var save_string = ""
+	
+	for i in range(8):
+		var line = ""
+		for j in range(8):
+			for k in range(8):
+				line+=(str(save_dict[Vector3(i,j,k)])+" ")
+		save_string += (line+"\n")
+	
+	return save_string
+		
+
+
+func generate_world():
+	for x1 in range(32):
+		for y1 in range(4):
+			for z1 in range(32):
+				var x = x1-16
+				var z = z1-16
+				var y = y1
+				noise.seed = generation_seed
+				noise.octaves = 3
+				noise.period = 25
+				noise.persistence = 0.3
+				var block_dict = {}
+				var n
+				
+				for i in range(8):
+					for j in range(8):
+						for k in range(8):
+							n = noise.get_noise_3d((i+(x*8)),(j+(y*8)),(k+(z*8)))
+							n/=2
+							n+=0.5
+							#0.955
+							var thresh = pow(0.955,(j+(y*8)))
+							if n < thresh:
+								if (j+(y*8))<14:
+									block_dict[Vector3(i,j,k)] = {"t":3}
+								else:
+									block_dict[Vector3(i,j,k)] = {"t":1}
+							elif (j+(y*8))<12:
+								
+								block_dict[Vector3(i,j,k)] = {"t":4}
+				
+				var save_string = get_save_string(block_dict)
+				
+				var chunk_pos_string = str(x)+" "+str(y)+" "+str(z)
+			
+				var file = File.new()
+				file.open("res://world/"+chunk_pos_string+".dat", File.WRITE)
+				file.store_string(save_string)
+				file.close()
+
+
+
+
 func chunk_manager(a):
 
 	var exit = false
@@ -219,7 +288,7 @@ func chunk_manager(a):
 	var twice = false
 	var chunk_on = Vector3(0,0,0)
 	var count_chunks = 0
-	var chunk_num = pow(3,2)#32
+	var chunk_num = pow(32,2)#32
 	var done = false
 	var init_chunk = false
 	var delete_list = []
@@ -260,7 +329,7 @@ func chunk_manager(a):
 							else:
 								dir=0
 			done = true
-		"""
+		
 		elif not (prev_player_chunk.x==player_chunk.x and prev_player_chunk.z==player_chunk.z):
 			done = false
 			copied = false
@@ -280,7 +349,7 @@ func chunk_manager(a):
 			chunk_on.z = player_chunk.z
 			change_queue=false
 			change_delete_list = false
-		"""
+		
 		
 		
 		var r1 = delete_list_mutex.try_lock()
@@ -307,12 +376,16 @@ func chunk_manager(a):
 			if r != ERR_BUSY:
 				chunk_queue = []
 				for c in chunk_list:
-					chunk_queue.append(c)
+					var chunk_pos_string = str(c.x)+" "+str(c.y)+" "+str(c.z)
+					var file2Check = File.new()
+					if file2Check.file_exists("res://world/"+chunk_pos_string+".dat"):
+						chunk_queue.append(c)
 				
 				chunk_queue_mutex.unlock()
 				change_queue = true
-				
+
 		if done==true and change_delete_list == false:
+
 			var r = delete_list_mutex.try_lock()
 			if r != ERR_BUSY:
 				for c in prev_chunk_list:
@@ -324,7 +397,7 @@ func chunk_manager(a):
 						delete_list.erase(c)
 				delete_list_mutex.unlock()
 				change_delete_list = true
-				
+
 				
 		
 			
