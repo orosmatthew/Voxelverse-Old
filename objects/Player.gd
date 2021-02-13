@@ -71,7 +71,12 @@ func _process(delta: float):
 		h_velocity = h_velocity.linear_interpolate(direction * speed, h_acceleration * delta)
 		movement.z = h_velocity.z
 		movement.x = h_velocity.x
+		
+		if velocity.y == 0 and movement.y > 0:
+			movement.y = 0
+		
 		movement.y += gravity_vector.y
+		
 		if is_on_floor() and movement.y <= 0:
 			movement.y = 0
 		if Input.is_action_pressed("move_up") and is_on_floor() and movement.y <= 0:
