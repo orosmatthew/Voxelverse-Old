@@ -1,0 +1,22 @@
+[gd_resource type="Environment" format=2]
+
+[resource]
+background_mode = 1
+background_color = Color( 0.392157, 0.780392, 0.988235, 1 )
+ambient_light_color = Color( 0.513726, 0.513726, 0.513726, 1 )
+fog_enabled = true
+fog_depth_begin = 100.0
+fog_depth_end = 150.0
+auto_exposure_scale = 0.5
+auto_exposure_speed = 1.0
+ssao_enabled = true
+ssao_radius = 6.3
+ssao_intensity = 1.5
+ssao_intensity2 = 0.0
+ssao_light_affect = 1.0
+ssao_color = Color( 0.235294, 0.235294, 0.235294, 1 )
+dof_blur_far_distance = 30.0
+dof_blur_far_transition = 10.0
+dof_blur_far_amount = 0.05
+glow_strength = 0.1
+glow_blend_mode = 1

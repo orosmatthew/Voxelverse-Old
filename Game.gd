@@ -18,7 +18,7 @@ var chunk_dict_mutex = Mutex.new()
 var noise = OpenSimplexNoise.new()
 
 onready var chunk_mutex = Mutex.new()
-onready var player_raycast = get_node("Player/Camera/RayCast")
+onready var player_raycast = get_node("Player/Head/RayCast")
 
 func _ready():
 	randomize()
