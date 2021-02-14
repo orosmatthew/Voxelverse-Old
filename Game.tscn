@@ -50,5 +50,12 @@ one_shot = true
 
 [node name="Player" parent="." instance=ExtResource( 3 )]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 200.731, 0 )
+air_acceleration = 5.0
+normal_acceleration = 12.0
+is_flying = false
+v_fly_speed = 10.0
+h_fly_speed = 15.0
+h_fly_acceleration = 5.0
+mouse_sensitivity = 0.03
 
 [node name="ChunkManager" parent="." instance=ExtResource( 4 )]

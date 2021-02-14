@@ -13,6 +13,8 @@ export var v_fly_speed: float = 10.0
 export var h_fly_speed: float = 15.0
 export var h_fly_acceleration: float = 5.0
 
+export var is_noclip: bool = false
+
 export var mouse_sensitivity: float = 0.03
 
 var velocity: Vector3 = Vector3()
@@ -40,7 +42,25 @@ func _input(event: InputEvent):
 		head.rotation.x = clamp(head.rotation.x, deg2rad(-89.9), deg2rad(89.9))
 
 func _process(delta: float):
+	
+	if Input.is_action_just_pressed("toggle_fly"):
+		if is_flying:
+			is_flying = false
+		else:
+			is_flying = true
+			
+	if Input.is_action_just_pressed("toggle_noclip"):
+		if is_noclip:
+			is_noclip = false
+		else:
+			is_noclip = true
 
+			
+	if is_noclip:
+		set_collision_mask_bit(0, false)
+	else:
+		set_collision_mask_bit(0, true)
+	
 	direction = Vector3()
 	
 	if not is_flying:
