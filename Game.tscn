@@ -1,8 +1,9 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://Game.gd" type="Script" id=1]
 [ext_resource path="res://SelectBox.dae" type="PackedScene" id=2]
 [ext_resource path="res://objects/Player.tscn" type="PackedScene" id=3]
+[ext_resource path="res://managers/ChunkManager.tscn" type="PackedScene" id=4]
 
 [sub_resource type="SphereMesh" id=1]
 
@@ -49,3 +50,5 @@ one_shot = true
 
 [node name="Player" parent="." instance=ExtResource( 3 )]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 200.731, 0 )
+
+[node name="ChunkManager" parent="." instance=ExtResource( 4 )]

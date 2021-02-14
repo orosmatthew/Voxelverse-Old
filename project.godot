@@ -9,12 +9,24 @@
 config_version=4
 
 _global_script_classes=[ {
+"base": "Reference",
+"class": "ChunkHelper",
+"language": "GDScript",
+"path": "res://helpers/ChunkHelper.gd"
+}, {
+"base": "Reference",
+"class": "ChunkIO",
+"language": "GDScript",
+"path": "res://helpers/ChunkIO.gd"
+}, {
 "base": "KinematicBody",
 "class": "Player",
 "language": "GDScript",
 "path": "res://objects/Player.gd"
 } ]
 _global_script_class_icons={
+"ChunkHelper": "",
+"ChunkIO": "",
 "Player": ""
 }
 

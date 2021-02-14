@@ -36,7 +36,6 @@ func chunking(a):
 				chunk_queue.remove(0)
 				chunk_queue_mutex.unlock()
 				
-				
 				var chunk = place_chunk(c)
 		
 				if chunk!=null:
