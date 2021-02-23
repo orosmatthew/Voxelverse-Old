@@ -1,9 +1,10 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://Game.gd" type="Script" id=1]
 [ext_resource path="res://SelectBox.dae" type="PackedScene" id=2]
 [ext_resource path="res://objects/Player.tscn" type="PackedScene" id=3]
 [ext_resource path="res://managers/ChunkManager.tscn" type="PackedScene" id=4]
+[ext_resource path="res://objects/Player.cs" type="Script" id=5]
 
 [sub_resource type="SphereMesh" id=1]
 
@@ -49,13 +50,7 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.701176, 13.9285, 1.24364 )
 one_shot = true
 
 [node name="Player" parent="." instance=ExtResource( 3 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 200.731, 0 )
-air_acceleration = 5.0
-normal_acceleration = 12.0
-is_flying = false
-v_fly_speed = 10.0
-h_fly_speed = 15.0
-h_fly_acceleration = 5.0
-mouse_sensitivity = 0.03
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 44.7378, 0 )
+script = ExtResource( 5 )
 
 [node name="ChunkManager" parent="." instance=ExtResource( 4 )]

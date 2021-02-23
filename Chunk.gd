@@ -3,7 +3,6 @@ extends Spatial
 var chunk_pos = Vector3(0,0,0)
 var noise = OpenSimplexNoise.new()
 var game
-var mesh_node
 var chunk_mesh
 var block_class
 var static_node
