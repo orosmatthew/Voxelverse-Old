@@ -4,12 +4,9 @@ var chunk_pos = Vector3(0,0,0)
 var noise = OpenSimplexNoise.new()
 var game
 var chunk_mesh
-var block_class
 var static_node
-var temp_dict_2 = {}
 var block_dict = {}
 var blocks =  {}
-var count = 0
 var texture_atlas_size = Vector2(8,8)
 var mat = load("res://TextureMaterial.tres")
 

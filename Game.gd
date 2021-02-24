@@ -1,4 +1,4 @@
-extends Node
+extends Spatial
 
 var thread_chunking = Thread.new()
 var thread_chunk_manager = Thread.new()

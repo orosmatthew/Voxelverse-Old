@@ -6,58 +6,58 @@ public class Player : KinematicBody
 {
 	
 	[Export]
-	float Speed = 10.0f;
+	public float Speed { get; set; } = 10.0f;
 
 	[Export]
-	float AirAcceleration = 5.0f;
+	public float AirAcceleration { get; set; } = 5.0f;
 
 	[Export]
-	float NormalAcceleration = 12.0f;
+	public float NormalAcceleration { get; set; } = 12.0f;
 
 	[Export]
-	float Gravity = 40.0f;
+	float Gravity { get; set; } = 40.0f;
 
 	[Export]
-	float JumpForce = 14.0f;
+	float JumpForce { get; set; } = 14.0f;
 
 	[Export]
-	bool IsFlying = false;
+	bool IsFlying { get; set; } = false;
 	
 	[Export]
-	float VerticalFlySpeed = 10.0f;
+	float VerticalFlySpeed { get; set; } = 10.0f;
 
 	[Export]
-	float HorizontalFlySpeed = 15.0f;
+	float HorizontalFlySpeed { get; set; } = 15.0f;
 
 	[Export]
-	float HorizontalFlyAcceleration = 5.0f;
+	float HorizontalFlyAcceleration { get; set; } = 5.0f;
 
 	[Export]
-	bool IsNoClip = false;
+	bool IsNoClip { get; set; } = false;
 
 	[Export]
-	float MouseSensitivity = 0.03f;
+	float MouseSensitivity { get; set; } = 0.03f;
 
-	Vector3 Velocity;
-	float HorizontalAcceleration;
-	Vector3 Direction;
-	Vector3 HorizontalVelocity;
-	Vector3 Movement;
-	Vector3 GravityVector;
-	Spatial HeadNode;
+	private Vector3 _velocity;
+	private float _horizontalAcceleration;
+	private Vector3 _direction;
+	private Vector3 _horizontalVelocity;
+	private Vector3 _movement;
+	private Vector3 _gravityVector;
+	private Spatial _headNode;
 
 	public Player()
 	{
-		Velocity = new Vector3();
-		Direction = new Vector3();
-		HorizontalVelocity = new Vector3();
-		Movement = new Vector3();
-		GravityVector = new Vector3();
+		_velocity = new Vector3();
+		_direction = new Vector3();
+		_horizontalVelocity = new Vector3();
+		_movement = new Vector3();
+		_gravityVector = new Vector3();
 	}
 
 	public override void _Ready()
 	{
-		HeadNode = (Spatial)GetNode("Head");
+		_headNode = (Spatial)GetNode("Head");
 		Input.SetMouseMode(Input.MouseMode.Captured);
 		Vector2 viewportSize = GetViewport().Size;
 		((Sprite)GetNode("HUD/Cross")).Position = new Vector2(viewportSize.x / 2.0f, viewportSize.y / 2.0f);
@@ -70,10 +70,10 @@ public class Player : KinematicBody
 		{
 			InputEventMouseMotion mouseMotionEvent = (InputEventMouseMotion)@event;
 			RotateY(Mathf.Deg2Rad(-mouseMotionEvent.Relative.x * MouseSensitivity));
-			HeadNode.RotateX(Mathf.Deg2Rad(-mouseMotionEvent.Relative.y * MouseSensitivity));
-			Vector3 HeadRotation = HeadNode.Rotation;
-			HeadRotation.x = Mathf.Clamp(HeadNode.Rotation.x, Mathf.Deg2Rad(-89.9f), Mathf.Deg2Rad(89.9f));
-			HeadNode.Rotation = HeadRotation;
+			_headNode.RotateX(Mathf.Deg2Rad(-mouseMotionEvent.Relative.y * MouseSensitivity));
+			Vector3 headRotation = _headNode.Rotation;
+			headRotation.x = Mathf.Clamp(_headNode.Rotation.x, Mathf.Deg2Rad(-89.9f), Mathf.Deg2Rad(89.9f));
+			_headNode.Rotation = headRotation;
 		}
 	}
 
@@ -111,86 +111,86 @@ public class Player : KinematicBody
 			SetCollisionMaskBit(0, true);
 		}
 
-		Direction = new Vector3();
+		_direction = new Vector3();
 
 		if (IsFlying == false)
 		{
 			if (IsOnFloor() == false)
 			{
-				HorizontalAcceleration = AirAcceleration;
+				_horizontalAcceleration = AirAcceleration;
 			}
 			else
 			{
-				HorizontalAcceleration = NormalAcceleration;
+				_horizontalAcceleration = NormalAcceleration;
 			}
 
-			GravityVector = Vector3.Down * Gravity * delta;
+			_gravityVector = Vector3.Down * Gravity * delta;
 		}
 
 		if (Input.IsActionPressed("move_forward"))
 		{
-			Direction -= Transform.basis.z;
+			_direction -= Transform.basis.z;
 		}
 		else if (Input.IsActionPressed("move_backward"))
 		{
-			Direction += Transform.basis.z;
+			_direction += Transform.basis.z;
 		}
 
 		if (Input.IsActionPressed("move_left"))
 		{
-			Direction -= Transform.basis.x;
+			_direction -= Transform.basis.x;
 		}
 		else if (Input.IsActionPressed("move_right"))
 		{
-			Direction += Transform.basis.x;
+			_direction += Transform.basis.x;
 		}
 
-		Direction = Direction.Normalized();
+		_direction = _direction.Normalized();
 
 		if (IsFlying == false)
 		{
-			HorizontalVelocity = HorizontalVelocity.LinearInterpolate(Direction * Speed, HorizontalAcceleration * delta);
-			Movement.z = HorizontalVelocity.z;
-			Movement.x = HorizontalVelocity.x;
+			_horizontalVelocity = _horizontalVelocity.LinearInterpolate(_direction * Speed, _horizontalAcceleration * delta);
+			_movement.z = _horizontalVelocity.z;
+			_movement.x = _horizontalVelocity.x;
 
-			if (Velocity.y == 0 & Movement.y > 0)
+			if (_velocity.y == 0 & _movement.y > 0)
 			{
-				Movement.y = 0;
+				_movement.y = 0;
 			}
 
-			Movement.y += GravityVector.y;
+			_movement.y += _gravityVector.y;
 
-			if (IsOnFloor() == true & Movement.y <= 0)
+			if (IsOnFloor() == true & _movement.y <= 0)
 			{
-				Movement.y = 0;
+				_movement.y = 0;
 			}
 
-			if (Input.IsActionPressed("move_up") & IsOnFloor() == true & Movement.y <= 0)
+			if (Input.IsActionPressed("move_up") & IsOnFloor() == true & _movement.y <= 0)
 			{
-				Movement.y = JumpForce;
+				_movement.y = JumpForce;
 			}
 		}
 		else
 		{
-			HorizontalVelocity = HorizontalVelocity.LinearInterpolate(Direction * HorizontalFlySpeed, HorizontalFlyAcceleration * delta);
-			Movement.z = HorizontalVelocity.z;
-			Movement.x = HorizontalVelocity.x;
+			_horizontalVelocity = _horizontalVelocity.LinearInterpolate(_direction * HorizontalFlySpeed, HorizontalFlyAcceleration * delta);
+			_movement.z = _horizontalVelocity.z;
+			_movement.x = _horizontalVelocity.x;
 
 			if (Input.IsActionPressed("move_down"))
 			{
-				Movement.y = -VerticalFlySpeed;
+				_movement.y = -VerticalFlySpeed;
 			}
 			else if (Input.IsActionPressed("move_up"))
 			{
-				Movement.y = VerticalFlySpeed;
+				_movement.y = VerticalFlySpeed;
 			}
 			else
 			{
-				Movement.y = 0;
+				_movement.y = 0;
 			}
 		}
 
-		Velocity = MoveAndSlide(Movement, Vector3.Up);
+		_velocity = MoveAndSlide(_movement, Vector3.Up);
 
 	}
 }

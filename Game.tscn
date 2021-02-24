@@ -1,21 +1,23 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=6 format=2]
 
-[ext_resource path="res://Game.gd" type="Script" id=1]
+[ext_resource path="res://managers/Game.cs" type="Script" id=1]
 [ext_resource path="res://SelectBox.dae" type="PackedScene" id=2]
 [ext_resource path="res://objects/Player.tscn" type="PackedScene" id=3]
 [ext_resource path="res://managers/ChunkManager.tscn" type="PackedScene" id=4]
-[ext_resource path="res://objects/Player.cs" type="Script" id=5]
 
 [sub_resource type="SphereMesh" id=1]
 
 [node name="Game" type="Node"]
 script = ExtResource( 1 )
 
-[node name="fps_label" type="Label" parent="."]
+[node name="FPSLabel" type="Label" parent="."]
 margin_left = 12.0
 margin_top = 11.0
 margin_right = 52.0
 margin_bottom = 25.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="Chunks" type="Node" parent="."]
 
@@ -50,7 +52,6 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.701176, 13.9285, 1.24364 )
 one_shot = true
 
 [node name="Player" parent="." instance=ExtResource( 3 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 44.7378, 0 )
-script = ExtResource( 5 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.94855, 0 )
 
 [node name="ChunkManager" parent="." instance=ExtResource( 4 )]
