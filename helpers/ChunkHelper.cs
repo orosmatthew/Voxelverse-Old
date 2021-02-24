@@ -34,7 +34,7 @@ public class ChunkHelper : Reference
         Vector2 topLeft = new Vector2(offset.x, offset.y);
 	    Vector2 topRight = new Vector2(offset.x + (1 / atlasSize.x), offset.y);
 	    Vector2 bottomLeft = new Vector2(offset.x, offset.y + (1 / atlasSize.y));
-        Vector2[] returnArray = {bottomRight, topLeft, topRight, bottomLeft};
+        Vector2[] returnArray = {topLeft, topRight, bottomLeft, bottomRight};
         return returnArray;
     }
 

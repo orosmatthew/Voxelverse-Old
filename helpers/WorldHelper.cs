@@ -27,4 +27,12 @@ public class WorldHelper : Reference
         return chunkBlockPosition;
     }
 
+    public static Vector3 GetWorldBlockFromChunkBlock(Vector3 chunkPosition, Vector3 chunkBlockPosition)
+    {
+        Vector3 worldBlockPosition = new Vector3((chunkPosition.x * 8) + chunkBlockPosition.x, 
+                                                 (chunkPosition.y * 8) + chunkBlockPosition.y, 
+                                                 (chunkPosition.z * 8) + chunkBlockPosition.z);
+        return worldBlockPosition;
+    }
+
 }

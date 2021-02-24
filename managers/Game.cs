@@ -8,28 +8,28 @@ public class Game : Node
 
 	public Vector3 PlayerPosition
 	{
-		get { return _playerPosition; }
+		get { return playerPosition; }
 	}
 
 	public Vector3 PlayerChunkPosition
 	{
-		get { return _playerChunkPosition; }
+		get { return playerChunkPosition; }
 	}
 
 	public Vector3 PlayerBlockPosition 
 	{ 
-		get { return _playerBlockPosition; }
+		get { return playerBlockPosition; }
 	}
 
 	public Vector3 PlayerChunkBlockPosition
 	{
-		get { return _playerChunkBlockPosition; }
+		get { return playerChunkBlockPosition; }
 	}
 
-	private Vector3 _playerPosition;
-	private Vector3 _playerChunkPosition;
-	private Vector3 _playerBlockPosition;
-	private Vector3 _playerChunkBlockPosition;
+	private Vector3 playerPosition;
+	private Vector3 playerChunkPosition;
+	private Vector3 playerBlockPosition;
+	private Vector3 playerChunkBlockPosition;
 
 	public Game()
 	{
@@ -51,10 +51,10 @@ public class Game : Node
 
 	private void UpdatePlayerPositions() 
 	{
-		_playerPosition = ((Player)GetNode("Player")).GlobalTransform[3];
-		_playerChunkPosition = WorldHelper.GetChunkFromWorldPosition(PlayerPosition);
-		_playerBlockPosition = WorldHelper.GetBlockFromWorldPosition(PlayerPosition);
-		_playerChunkBlockPosition = WorldHelper.GetChunkBlockFromWorldPosition(PlayerPosition);
+		playerPosition = ((Player)GetNode("Player")).GlobalTransform[3];
+		playerChunkPosition = WorldHelper.GetChunkFromWorld(PlayerPosition);
+		playerBlockPosition = WorldHelper.GetBlockFromWorld(PlayerPosition);
+		playerChunkBlockPosition = WorldHelper.GetChunkBlockFromWorld(PlayerPosition);
 	}
 
 	private void GenerateWorld()
@@ -62,5 +62,6 @@ public class Game : Node
 		PackedScene chunkScene = (PackedScene)ResourceLoader.Load("res://objects/Chunk.tscn");
 		Chunk chunk = (Chunk)chunkScene.Instance();
 		AddChild(chunk);
+		chunk.GenerateChunk();
 	}
 }
