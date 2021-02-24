@@ -27,6 +27,20 @@ public class ChunkHelper : Reference
         return new Vector3(0, 0, 0);
     }
 
+    public static int GetOppositeSide(int side)
+    {
+        switch (side)
+        {
+            case 0: return 1;
+            case 1: return 0;
+            case 2: return 3;
+            case 3: return 2;
+            case 4: return 5;
+            case 5: return 4;
+            default: return 0;
+        }
+    }
+
     private static Vector2[] GetAtlasUvCoordinates(Vector2 atlasSize, Vector2 atlasPosition)
     {
         Vector2 offset = new Vector2(atlasPosition.x / atlasSize.x, atlasPosition.y / atlasSize.y);

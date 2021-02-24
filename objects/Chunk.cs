@@ -10,15 +10,22 @@ public class Chunk : Spatial
 	{
 		get { return blocks; }
 	}
+
+	public Godot.Collections.Array<Vector3> BlockPositions
+	{
+		get { return blockPositions; }
+	}
 	
 	private Node gameNode;
 	private MeshInstance chunkMesh;
 	private Vector2 textureAtlasSize = new Vector2(8, 8);
 	private Godot.Collections.Array<Block> blocks = new Godot.Collections.Array<Block>();
 	private Material material = (Material)(GD.Load("res://TextureMaterial.tres"));
+	private Godot.Collections.Array<Vector3> blockPositions = new Godot.Collections.Array<Vector3>();
 
 	public void GenerateChunk()
 	{
+
 		for (int x = 0; x < 8; x++)
 		{
 			for (int y = 0; y < 8; y++)
@@ -35,6 +42,22 @@ public class Chunk : Spatial
 
 	public void UpdateChunk()
 	{
+
+		blockPositions.Clear();
+
+		foreach (Block block in blocks)
+		{
+			blockPositions.Add(block.ChunkBlockPosition);
+		}
+
+		foreach (Block block in blocks)
+		{
+			for (int a = 0; a < 6; a++)
+			{
+				block.AdjacentBlocks[a] = blockPositions.Contains(ChunkHelper.GetAdjacentBlockPosition(a) + block.ChunkBlockPosition);
+			}
+		}
+
 		BuildChunk();
 	}
 
