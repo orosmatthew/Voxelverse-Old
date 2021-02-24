@@ -55,10 +55,12 @@ public class ChunkHelper : Reference
     public static Vector2[] GetCubeUvs(int orientation, int type, Vector2 textureAtlasSize)
     {
 
+        Vector2[] texturePositions = GetTexturePositionsFromBlockType(type);
 
         if (orientation == (int)Sides.Front)
         {
-            Vector2[] coordinates = GetAtlasUvCoordinates(textureAtlasSize, new Vector2(0, 0));
+            
+            Vector2[] coordinates = GetAtlasUvCoordinates(textureAtlasSize, texturePositions[(int)Sides.Front]);
             Vector2[] uvArray = 
             {
                 coordinates[0],
@@ -74,7 +76,7 @@ public class ChunkHelper : Reference
 
         if (orientation == (int)Sides.Back)
         {
-            Vector2[] coordinates = GetAtlasUvCoordinates(textureAtlasSize, new Vector2(0, 0));
+            Vector2[] coordinates = GetAtlasUvCoordinates(textureAtlasSize, texturePositions[(int)Sides.Back]);
             Vector2[] uvArray = 
             {
                 coordinates[0],
@@ -90,7 +92,7 @@ public class ChunkHelper : Reference
 
         if (orientation == (int)Sides.Right)
         {
-            Vector2[] coordinates = GetAtlasUvCoordinates(textureAtlasSize, new Vector2(0, 0));
+            Vector2[] coordinates = GetAtlasUvCoordinates(textureAtlasSize, texturePositions[(int)Sides.Right]);
             Vector2[] uvArray = 
             {
                 coordinates[0],
@@ -106,7 +108,7 @@ public class ChunkHelper : Reference
 
         if (orientation == (int)Sides.Left)
         {
-            Vector2[] coordinates = GetAtlasUvCoordinates(textureAtlasSize, new Vector2(0, 0));
+            Vector2[] coordinates = GetAtlasUvCoordinates(textureAtlasSize, texturePositions[(int)Sides.Left]);
             Vector2[] uvArray = 
             {
                 coordinates[2],
@@ -122,7 +124,7 @@ public class ChunkHelper : Reference
 
         if (orientation == (int)Sides.Top)
         {
-            Vector2[] coordinates = GetAtlasUvCoordinates(textureAtlasSize, new Vector2(0, 0));
+            Vector2[] coordinates = GetAtlasUvCoordinates(textureAtlasSize, texturePositions[(int)Sides.Top]);
             Vector2[] uvArray = 
             {
                 coordinates[3],
@@ -138,7 +140,7 @@ public class ChunkHelper : Reference
 
         if (orientation == (int)Sides.Bottom)
         {
-            Vector2[] coordinates = GetAtlasUvCoordinates(textureAtlasSize, new Vector2(0, 0));
+            Vector2[] coordinates = GetAtlasUvCoordinates(textureAtlasSize, texturePositions[(int)Sides.Bottom]);
             Vector2[] uvArray = 
             {
                 coordinates[2],
@@ -253,5 +255,25 @@ public class ChunkHelper : Reference
         return returnArray;
     }
 
+    public static Vector2[] GetTexturePositionsFromBlockType(int type)
+    {
+        switch (type)
+        {
+            case 1: return new Vector2[] {new Vector2(1, 0), new Vector2(1, 0), new Vector2(1, 0), 
+                                          new Vector2(1, 0), new Vector2(0, 0), new Vector2(0, 0)};
+
+            case 2: return new Vector2[] {new Vector2(3, 0), new Vector2(3, 0), new Vector2(3, 0), 
+                                          new Vector2(3, 0), new Vector2(3, 0), new Vector2(3, 0)};
+
+            case 3: return new Vector2[] {new Vector2(4, 0), new Vector2(4, 0), new Vector2(4, 0), 
+                                          new Vector2(4, 0), new Vector2(4, 0), new Vector2(4, 0)};
+
+            case 4: return new Vector2[] {new Vector2(5, 0), new Vector2(5, 0), new Vector2(5, 0), 
+                                          new Vector2(5, 0), new Vector2(5, 0), new Vector2(5, 0)};
+
+            default: return new Vector2[] {new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 0), 
+                                          new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 0)};
+        }
+    }
 
 }

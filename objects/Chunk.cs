@@ -4,7 +4,7 @@ using System;
 public class Chunk : Spatial
 {
 	
-	public Vector3 ChunkPosition { get; }
+	public Vector3 ChunkPosition { get; set; }
 	
 	public Godot.Collections.Array<Block> Blocks
 	{
@@ -18,6 +18,7 @@ public class Chunk : Spatial
 	
 	private Node gameNode;
 	private MeshInstance chunkMesh;
+	private StaticBody staticNode;
 	private Vector2 textureAtlasSize = new Vector2(8, 8);
 	private Godot.Collections.Array<Block> blocks = new Godot.Collections.Array<Block>();
 	private Material material = (Material)(GD.Load("res://TextureMaterial.tres"));
@@ -38,6 +39,7 @@ public class Chunk : Spatial
 			}
 		}
 		UpdateChunk();
+		CreateChunkCollision();
 	}
 
 	public void UpdateChunk()
@@ -54,7 +56,7 @@ public class Chunk : Spatial
 		{
 			for (int a = 0; a < 6; a++)
 			{
-				block.AdjacentBlocks[a] = blockPositions.Contains(ChunkHelper.GetAdjacentBlockPosition(a) + block.ChunkBlockPosition);
+				block.AdjacentBlocks[a] = blockPositions.Contains(block.ChunkBlockPosition + ChunkHelper.GetAdjacentBlockPosition(a));
 			}
 		}
 
@@ -79,10 +81,10 @@ public class Chunk : Spatial
 				{
 					foreach (Vector3 v in ChunkHelper.GetCubeVertices(side))
 					{
-						vertices.Add(v + block.ChunkBlockPosition);
+						vertices.Add(block.ChunkBlockPosition + v);
 					}
 
-					foreach (Vector2 u in ChunkHelper.GetCubeUvs(side, 0, textureAtlasSize))
+					foreach (Vector2 u in ChunkHelper.GetCubeUvs(side, 1, textureAtlasSize))
 					{
 						uvs.Add(u);
 					}
@@ -103,6 +105,40 @@ public class Chunk : Spatial
 		meshInstance.Name = "mesh";
 		chunkMesh = meshInstance;
 		AddChild(chunkMesh);
+	}
+
+	public void CreateChunkCollision()
+	{
+		Godot.Collections.Array<Vector3> collisionVertices = new Godot.Collections.Array<Vector3>();
+
+		foreach (Block block in blocks)
+		{
+			for (int a = 0; a < 6; a++)
+			{
+				if (block.AdjacentBlocks[a] == false)
+				{
+					foreach (Vector3 v in ChunkHelper.GetCubeVertices(a))
+					collisionVertices.Add(block.ChunkBlockPosition + v);
+				}
+			}
+		}
+
+		if (collisionVertices.Count == 0)
+		{
+			return;
+		}
+
+		StaticBody staticBody = new StaticBody();
+		staticBody.Name = "StaticBody";
+		AddChild(staticBody);
+		staticNode = staticBody;
+		CollisionShape collisionShape = new CollisionShape();
+		staticBody.AddChild(collisionShape);
+		ConcavePolygonShape concavePolygonShape = new ConcavePolygonShape();
+		Vector3[] collisionArray = new Vector3[collisionVertices.Count];
+		collisionVertices.CopyTo(collisionArray, 0);
+		concavePolygonShape.Data = collisionArray;
+		collisionShape.Shape = concavePolygonShape;
 	}
 
 }

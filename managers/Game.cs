@@ -30,6 +30,8 @@ public class Game : Node
 	private Vector3 playerChunkPosition;
 	private Vector3 playerBlockPosition;
 	private Vector3 playerChunkBlockPosition;
+	private ChunkManager chunkManager;
+	private Thread chunkThread;
 
 	public Game()
 	{
@@ -39,7 +41,9 @@ public class Game : Node
 
 	public override void _Ready()
 	{
-		GenerateWorld();
+		chunkManager = new ChunkManager(this);
+		chunkThread = new Thread();
+		chunkThread.Start(chunkManager, "Start");
 	}
 
 	public override void _Process(float delta)
@@ -57,11 +61,11 @@ public class Game : Node
 		playerChunkBlockPosition = WorldHelper.GetChunkBlockFromWorld(PlayerPosition);
 	}
 
-	private void GenerateWorld()
+	public void PlaceChunk(Chunk chunk)
 	{
-		PackedScene chunkScene = (PackedScene)ResourceLoader.Load("res://objects/Chunk.tscn");
-		Chunk chunk = (Chunk)chunkScene.Instance();
 		AddChild(chunk);
-		chunk.GenerateChunk();
+		Transform chunkTransform = chunk.GlobalTransform;
+		chunkTransform[3] = chunk.ChunkPosition * 8;
+		chunk.GlobalTransform = chunkTransform;
 	}
 }
