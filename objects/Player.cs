@@ -38,13 +38,41 @@ public class Player : KinematicBody
 	[Export]
 	float MouseSensitivity { get; set; } = 0.03f;
 
+	public Vector3 Position
+	{
+		get { return position; }
+	}
+
+	public Vector3 ChunkPosition
+	{
+		get { return chunkPosition; }
+	}
+
+	public Vector3 BlockPosition 
+	{ 
+		get { return blockPosition; }
+	}
+
+	public Vector3 ChunkBlockPosition
+	{
+		get { return chunkBlockPosition; }
+	}
+
+	private Vector3 position;
+	private Vector3 chunkPosition;
+	private Vector3 blockPosition;
+	private Vector3 chunkBlockPosition;
+
 	private Vector3 velocity;
 	private float horizontalAcceleration;
 	private Vector3 direction;
 	private Vector3 horizontalVelocity;
 	private Vector3 movement;
 	private Vector3 gravityVector;
+
 	private Spatial headNode;
+	private RayCast rayCastNode;
+	private Spatial selectBoxNode;
 
 	public Player()
 	{
@@ -58,6 +86,8 @@ public class Player : KinematicBody
 	public override void _Ready()
 	{
 		headNode = (Spatial)GetNode("Head");
+		rayCastNode = (RayCast)GetNode("Head/RayCast");
+		selectBoxNode = (Spatial)GetNode("SelectBox");
 		Input.SetMouseMode(Input.MouseMode.Captured);
 		Vector2 viewportSize = GetViewport().Size;
 		((Sprite)GetNode("HUD/Cross")).Position = new Vector2(viewportSize.x / 2.0f, viewportSize.y / 2.0f);
@@ -79,7 +109,80 @@ public class Player : KinematicBody
 
 	public override void _Process(float delta)
 	{
-		if (Input.IsActionJustPressed("toggle_fly"))
+		HandleMovement(delta);
+		HandleSelection();
+	}
+
+	private void UpdatePositions() 
+	{
+		position = GlobalTransform[3];
+		chunkPosition = WorldHelper.GetChunkFromWorld(Position);
+		blockPosition = WorldHelper.GetBlockFromWorld(Position);
+		chunkBlockPosition = WorldHelper.GetChunkBlockFromWorld(Position);
+	}
+
+	private void HandleSelection()
+	{
+		bool blockExist = false;
+		Vector3 breakBlockPosition = new Vector3(0, 0, 0);
+		Vector3 placeBlockPosition = new Vector3(0, 0, 0);
+
+		if (rayCastNode.GetCollider() != null)
+		{
+			blockExist = true;
+			Vector3 rayCastPosition = rayCastNode.GetCollisionPoint();
+			Vector3 rayCastNormal = rayCastNode.GetCollisionNormal();
+			Vector3 queryPoint = rayCastPosition + new Vector3(-0.5f, -0.5f, -0.5f);
+
+			int[,] axisMatrix = new int[,] { {0, 1, 2}, {1, 0, 2}, {2, 1, 0} };
+
+			for (int i = 0; i < 3; i++)
+			{
+				if (Mathf.Abs(rayCastNormal[axisMatrix[i, 0]]) == 1)
+				{
+					breakBlockPosition[axisMatrix[i, 1]] = Mathf.Round(queryPoint[axisMatrix[i, 1]]);
+					breakBlockPosition[axisMatrix[i, 2]] = Mathf.Round(queryPoint[axisMatrix[i, 2]]);
+
+					placeBlockPosition[axisMatrix[i, 1]] = Mathf.Round(queryPoint[axisMatrix[i, 1]]);
+					placeBlockPosition[axisMatrix[i, 2]] = Mathf.Round(queryPoint[axisMatrix[i, 2]]);
+					
+					if (rayCastNormal[axisMatrix[i, 0]] > 0)
+					{
+						breakBlockPosition[axisMatrix[i, 0]] = Mathf.Floor(queryPoint[axisMatrix[i, 0]]);
+						placeBlockPosition[axisMatrix[i, 0]] = Mathf.Floor(queryPoint[axisMatrix[i, 0]]) + 1;
+					}
+					else
+					{
+						breakBlockPosition[axisMatrix[i, 0]] = Mathf.Ceil(queryPoint[axisMatrix[i, 0]]);
+						placeBlockPosition[axisMatrix[i, 0]] = Mathf.Ceil(queryPoint[axisMatrix[i, 0]]) - 1;
+					}
+				}
+			}
+		}
+		else
+		{
+			blockExist = false;
+		}
+
+		if (blockExist == true)
+		{
+			selectBoxNode.Show();
+			Transform selectBoxTransform = selectBoxNode.GlobalTransform;
+			selectBoxTransform[3] = breakBlockPosition + new Vector3(0.5f, 0.5f, 0.5f);
+			selectBoxTransform.basis = new Basis(new Vector3(0, 0, 0));
+			selectBoxNode.GlobalTransform = selectBoxTransform;
+		}
+		else
+		{
+			selectBoxNode.Hide();
+		}
+
+	}
+
+	private void HandleMovement(float delta)
+	{
+
+				if (Input.IsActionJustPressed("toggle_fly"))
 		{
 			if (IsFlying) {
 				IsFlying = false;
@@ -193,4 +296,5 @@ public class Player : KinematicBody
 		velocity = MoveAndSlide(movement, Vector3.Up);
 
 	}
+
 }
