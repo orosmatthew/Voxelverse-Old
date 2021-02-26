@@ -45,7 +45,6 @@ public class Chunk : Spatial
 	{
 		if (blocks.ContainsKey(chunkBlockPosition))
 		{
-			blocks[chunkBlockPosition].Free();
 			blocks.Remove(chunkBlockPosition);
 			Godot.Collections.Array<Vector3> updateList = new Godot.Collections.Array<Vector3>();
 			for (int a = 0; a < 6; a++)

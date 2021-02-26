@@ -38,41 +38,11 @@ public class Player : KinematicBody
 	[Export]
 	float MouseSensitivity { get; set; } = 0.03f;
 
-	public Vector3 Position
-	{
-		get { return position; }
-	}
-
-	public Vector3 ChunkPosition
-	{
-		get { return chunkPosition; }
-	}
-
-	public Vector3 BlockPosition 
-	{ 
-		get { return blockPosition; }
-	}
-
-	public Vector3 ChunkBlockPosition
-	{
-		get { return chunkBlockPosition; }
-	}
-
-	private Vector3 position;
-	private Vector3 chunkPosition;
-	private Vector3 blockPosition;
-	private Vector3 chunkBlockPosition;
-
 	private Vector3 velocity;
-	private float horizontalAcceleration;
 	private Vector3 direction;
 	private Vector3 horizontalVelocity;
 	private Vector3 movement;
 	private Vector3 gravityVector;
-
-	private Spatial headNode;
-	private RayCast rayCastNode;
-	private Spatial selectBoxNode;
 
 	public Player()
 	{
@@ -81,13 +51,20 @@ public class Player : KinematicBody
 		horizontalVelocity = new Vector3();
 		movement = new Vector3();
 		gravityVector = new Vector3();
+		
 	}
+
+	private Spatial headNode;
+	private RayCast rayCastNode;
+	private Spatial selectBoxNode;
+	private Game gameNode;
 
 	public override void _Ready()
 	{
 		headNode = (Spatial)GetNode("Head");
 		rayCastNode = (RayCast)GetNode("Head/RayCast");
 		selectBoxNode = (Spatial)GetNode("SelectBox");
+		gameNode = (Game)GetTree().Root.GetNode("Game");
 		Input.SetMouseMode(Input.MouseMode.Captured);
 		Vector2 viewportSize = GetViewport().Size;
 		((Sprite)GetNode("HUD/Cross")).Position = new Vector2(viewportSize.x / 2.0f, viewportSize.y / 2.0f);
@@ -112,6 +89,31 @@ public class Player : KinematicBody
 		HandleMovement(delta);
 		HandleSelection();
 	}
+
+	public Vector3 Position
+	{
+		get { return position; }
+	}
+
+	public Vector3 ChunkPosition
+	{
+		get { return chunkPosition; }
+	}
+
+	public Vector3 BlockPosition 
+	{ 
+		get { return blockPosition; }
+	}
+
+	public Vector3 ChunkBlockPosition
+	{
+		get { return chunkBlockPosition; }
+	}
+
+	private Vector3 position;
+	private Vector3 chunkPosition;
+	private Vector3 blockPosition;
+	private Vector3 chunkBlockPosition;
 
 	private void UpdatePositions() 
 	{
@@ -171,24 +173,24 @@ public class Player : KinematicBody
 			selectBoxTransform[3] = breakBlockPosition + new Vector3(0.5f, 0.5f, 0.5f);
 			selectBoxTransform.basis = new Basis(new Vector3(0, 0, 0));
 			selectBoxNode.GlobalTransform = selectBoxTransform;
+			
 
 			if (Input.IsActionJustPressed("place"))
 			{
-				Game game = (Game)GetTree().Root.GetNode("Game");
+				
 				Vector3 placeChunkPosition = WorldHelper.GetChunkFromWorld(placeBlockPosition);
-				if (game.Chunks.ContainsKey(placeChunkPosition))
+				if (gameNode.Chunks.ContainsKey(placeChunkPosition))
 				{
-					game.Chunks[placeChunkPosition].PlaceBlock(WorldHelper.GetChunkBlockFromWorld(placeBlockPosition), 1);
+					gameNode.Chunks[placeChunkPosition].PlaceBlock(WorldHelper.GetChunkBlockFromWorld(placeBlockPosition), 1);
 				}
 			}
 
 			if (Input.IsActionJustPressed("break"))
 			{
-				Game game = (Game)GetTree().Root.GetNode("Game");
 				Vector3 breakChunkPosition = WorldHelper.GetChunkFromWorld(breakBlockPosition);
-				if (game.Chunks.ContainsKey(breakChunkPosition))
+				if (gameNode.Chunks.ContainsKey(breakChunkPosition))
 				{
-					game.Chunks[breakChunkPosition].RemoveBlock(WorldHelper.GetChunkBlockFromWorld(breakBlockPosition));
+					gameNode.Chunks[breakChunkPosition].RemoveBlock(WorldHelper.GetChunkBlockFromWorld(breakBlockPosition));
 				}
 			}
 
@@ -202,7 +204,7 @@ public class Player : KinematicBody
 	private void HandleMovement(float delta)
 	{
 
-				if (Input.IsActionJustPressed("toggle_fly"))
+		if (Input.IsActionJustPressed("toggle_fly"))
 		{
 			if (IsFlying) {
 				IsFlying = false;
@@ -236,20 +238,6 @@ public class Player : KinematicBody
 
 		direction = new Vector3();
 
-		if (IsFlying == false)
-		{
-			if (IsOnFloor() == false)
-			{
-				horizontalAcceleration = AirAcceleration;
-			}
-			else
-			{
-				horizontalAcceleration = NormalAcceleration;
-			}
-
-			gravityVector = Vector3.Down * Gravity * delta;
-		}
-
 		if (Input.IsActionPressed("move_forward"))
 		{
 			direction -= Transform.basis.z;
@@ -272,6 +260,20 @@ public class Player : KinematicBody
 
 		if (IsFlying == false)
 		{
+
+			float horizontalAcceleration = 0f;
+
+			if (IsOnFloor() == false)
+			{
+				horizontalAcceleration = AirAcceleration;
+			}
+			else
+			{
+				horizontalAcceleration = NormalAcceleration;
+			}
+
+			gravityVector = Vector3.Down * Gravity * delta;
+
 			horizontalVelocity = horizontalVelocity.LinearInterpolate(direction * Speed, horizontalAcceleration * delta);
 			movement.z = horizontalVelocity.z;
 			movement.x = horizontalVelocity.x;

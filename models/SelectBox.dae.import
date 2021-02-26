@@ -2,12 +2,12 @@
 
 importer="scene"
 type="PackedScene"
-path="res://.import/SelectBox.dae-addd438a4a907c355da72cdd945a0c27.scn"
+path="res://.import/SelectBox.dae-6139b0c58bfbe201237ba113b40d1f67.scn"
 
 [deps]
 
-source_file="res://SelectBox.dae"
-dest_files=[ "res://.import/SelectBox.dae-addd438a4a907c355da72cdd945a0c27.scn" ]
+source_file="res://models/SelectBox.dae"
+dest_files=[ "res://.import/SelectBox.dae-6139b0c58bfbe201237ba113b40d1f67.scn" ]
 
 [params]
 
