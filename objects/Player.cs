@@ -171,12 +171,32 @@ public class Player : KinematicBody
 			selectBoxTransform[3] = breakBlockPosition + new Vector3(0.5f, 0.5f, 0.5f);
 			selectBoxTransform.basis = new Basis(new Vector3(0, 0, 0));
 			selectBoxNode.GlobalTransform = selectBoxTransform;
+
+			if (Input.IsActionJustPressed("place"))
+			{
+				Game game = (Game)GetTree().Root.GetNode("Game");
+				Vector3 placeChunkPosition = WorldHelper.GetChunkFromWorld(placeBlockPosition);
+				if (game.Chunks.ContainsKey(placeChunkPosition))
+				{
+					game.Chunks[placeChunkPosition].PlaceBlock(WorldHelper.GetChunkBlockFromWorld(placeBlockPosition), 1);
+				}
+			}
+
+			if (Input.IsActionJustPressed("break"))
+			{
+				Game game = (Game)GetTree().Root.GetNode("Game");
+				Vector3 breakChunkPosition = WorldHelper.GetChunkFromWorld(breakBlockPosition);
+				if (game.Chunks.ContainsKey(breakChunkPosition))
+				{
+					game.Chunks[breakChunkPosition].RemoveBlock(WorldHelper.GetChunkBlockFromWorld(breakBlockPosition));
+				}
+			}
+
 		}
 		else
 		{
 			selectBoxNode.Hide();
 		}
-
 	}
 
 	private void HandleMovement(float delta)

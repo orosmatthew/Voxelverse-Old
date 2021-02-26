@@ -6,7 +6,7 @@ public class Chunk : Spatial
 	
 	public Vector3 ChunkPosition { get; set; }
 	
-	public Godot.Collections.Array<Block> Blocks
+	public Godot.Collections.Dictionary<Vector3, Block> Blocks
 	{
 		get { return blocks; }
 	}
@@ -20,9 +20,42 @@ public class Chunk : Spatial
 	private MeshInstance chunkMesh;
 	private StaticBody staticNode;
 	private Vector2 textureAtlasSize = new Vector2(8, 8);
-	private Godot.Collections.Array<Block> blocks = new Godot.Collections.Array<Block>();
+	private Godot.Collections.Dictionary<Vector3, Block> blocks = new Godot.Collections.Dictionary<Vector3, Block>();
 	private Material material = (Material)(GD.Load("res://TextureMaterial.tres"));
 	private Godot.Collections.Array<Vector3> blockPositions = new Godot.Collections.Array<Vector3>();
+
+	public void PlaceBlock(Vector3 chunkBlockPosition, int type)
+	{
+		if (blocks.ContainsKey(chunkBlockPosition))
+		{
+			return;
+		}
+		Block block = new Block(chunkBlockPosition, ChunkPosition);
+		blocks.Add(block.ChunkBlockPosition, block);
+		Godot.Collections.Array<Vector3> updateList = new Godot.Collections.Array<Vector3>();
+		for (int a = 0; a < 6; a++)
+		{
+			updateList.Add(block.ChunkBlockPosition + ChunkHelper.GetAdjacentBlockPosition(a));
+		}
+		UpdateChunk(updateList);
+		CreateChunkCollision();
+	}
+
+	public void RemoveBlock(Vector3 chunkBlockPosition)
+	{
+		if (blocks.ContainsKey(chunkBlockPosition))
+		{
+			blocks[chunkBlockPosition].Free();
+			blocks.Remove(chunkBlockPosition);
+			Godot.Collections.Array<Vector3> updateList = new Godot.Collections.Array<Vector3>();
+			for (int a = 0; a < 6; a++)
+			{
+				updateList.Add(chunkBlockPosition + ChunkHelper.GetAdjacentBlockPosition(a));
+			}
+			UpdateChunk(updateList);
+			CreateChunkCollision();
+		}
+	}
 
 	public void GenerateChunk()
 	{
@@ -33,8 +66,13 @@ public class Chunk : Spatial
 			{
 				for (int z = 0; z < 8; z++)
 				{
+					if (y % 2 == 0)
+					{
+						continue;
+					}
+
 					Block block = new Block(new Vector3(x, y, z), ChunkPosition);
-					blocks.Add(block);
+					blocks.Add(block.ChunkBlockPosition, block);
 				}
 			}
 		}
@@ -42,29 +80,42 @@ public class Chunk : Spatial
 		CreateChunkCollision();
 	}
 
-	public void UpdateChunk()
+	public void UpdateChunk(Godot.Collections.Array<Vector3> updateList = null)
 	{
-
-		blockPositions.Clear();
-
-		foreach (Block block in blocks)
+		if (updateList == null)
 		{
-			blockPositions.Add(block.ChunkBlockPosition);
-		}
-
-		foreach (Block block in blocks)
-		{
-			for (int a = 0; a < 6; a++)
+			foreach (System.Collections.Generic.KeyValuePair<Vector3, Block> block in blocks)
 			{
-				block.AdjacentBlocks[a] = blockPositions.Contains(block.ChunkBlockPosition + ChunkHelper.GetAdjacentBlockPosition(a));
+				for (int a = 0; a < 6; a++)
+				{
+					block.Value.AdjacentBlocks[a] = blocks.ContainsKey(block.Value.ChunkBlockPosition + ChunkHelper.GetAdjacentBlockPosition(a));
+				}
 			}
 		}
-
+		else
+		{
+			foreach (Vector3 chunkBlockPosition in updateList)
+			{
+				if (blocks.ContainsKey(chunkBlockPosition))
+				{
+					for (int a = 0; a < 6; a++)
+					{
+						blocks[chunkBlockPosition].AdjacentBlocks[a] = blocks.ContainsKey(chunkBlockPosition + ChunkHelper.GetAdjacentBlockPosition(a));
+					}
+				}
+			}
+		}
 		BuildChunk();
 	}
 
 	public void BuildChunk()
 	{
+
+		if (chunkMesh != null)
+		{
+			chunkMesh.Free();
+		}
+
 		MeshInstance meshInstance = new MeshInstance();
 		SurfaceTool surfaceTool = new SurfaceTool();
 
@@ -73,18 +124,18 @@ public class Chunk : Spatial
 		Godot.Collections.Array<Vector3> vertices = new Godot.Collections.Array<Vector3>();
 		Godot.Collections.Array<Vector2> uvs = new Godot.Collections.Array<Vector2>();
 
-		foreach (Block block in blocks)
+		foreach (System.Collections.Generic.KeyValuePair<Vector3, Block> block in blocks)
 		{
 			for (int side = 0; side < 6; side++)
 			{
-				if (block.AdjacentBlocks[side] == false)
+				if (block.Value.AdjacentBlocks[side] == false)
 				{
 					foreach (Vector3 v in ChunkHelper.GetCubeVertices(side))
 					{
-						vertices.Add(block.ChunkBlockPosition + v);
+						vertices.Add(block.Value.ChunkBlockPosition + v);
 					}
 
-					foreach (Vector2 u in ChunkHelper.GetCubeUvs(side, 1, textureAtlasSize))
+					foreach (Vector2 u in ChunkHelper.GetCubeUvs(side, 2, textureAtlasSize))
 					{
 						uvs.Add(u);
 					}
@@ -109,16 +160,22 @@ public class Chunk : Spatial
 
 	public void CreateChunkCollision()
 	{
+
+		if (staticNode != null)
+		{
+			staticNode.Free();
+		}
+
 		Godot.Collections.Array<Vector3> collisionVertices = new Godot.Collections.Array<Vector3>();
 
-		foreach (Block block in blocks)
+		foreach (System.Collections.Generic.KeyValuePair<Vector3, Block> block in blocks)
 		{
 			for (int a = 0; a < 6; a++)
 			{
-				if (block.AdjacentBlocks[a] == false)
+				if (block.Value.AdjacentBlocks[a] == false)
 				{
 					foreach (Vector3 v in ChunkHelper.GetCubeVertices(a))
-					collisionVertices.Add(block.ChunkBlockPosition + v);
+					collisionVertices.Add(block.Value.ChunkBlockPosition + v);
 				}
 			}
 		}
@@ -140,5 +197,4 @@ public class Chunk : Spatial
 		concavePolygonShape.Data = collisionArray;
 		collisionShape.Shape = concavePolygonShape;
 	}
-
 }
