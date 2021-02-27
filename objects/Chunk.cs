@@ -16,7 +16,6 @@ public class Chunk : Spatial
 		get { return blockPositions; }
 	}
 	
-	private Node gameNode;
 	private MeshInstance chunkMesh;
 	private StaticBody staticNode;
 	private Vector2 textureAtlasSize = new Vector2(8, 8);
@@ -30,7 +29,7 @@ public class Chunk : Spatial
 		{
 			return;
 		}
-		Block block = new Block(chunkBlockPosition, ChunkPosition);
+		Block block = new Block(chunkBlockPosition, ChunkPosition, 1);
 		blocks.Add(block.ChunkBlockPosition, block);
 		Godot.Collections.Array<Vector3> updateList = new Godot.Collections.Array<Vector3>();
 		for (int a = 0; a < 6; a++)
@@ -56,22 +55,22 @@ public class Chunk : Spatial
 		}
 	}
 
-	public void GenerateChunk()
+	public void GenerateChunk(WorldGenerator worldGenerator)
 	{
 
-		for (int x = 0; x < 8; x++)
+		for (int x = 0; x < WorldHelper.ChunkSize; x++)
 		{
-			for (int y = 0; y < 8; y++)
+			for (int y = 0; y < WorldHelper.ChunkSize; y++)
 			{
-				for (int z = 0; z < 8; z++)
+				for (int z = 0; z < WorldHelper.ChunkSize; z++)
 				{
-					if (y % 2 == 0)
+					Vector3 queryPosition = WorldHelper.GetWorldBlockFromChunkBlock(ChunkPosition, new Vector3(x, y, z));
+					int b = worldGenerator.QueryBlock(queryPosition);
+					if (b != 0)
 					{
-						continue;
+						Block block = new Block(new Vector3(x, y, z), ChunkPosition, b);
+						blocks.Add(block.ChunkBlockPosition, block);
 					}
-
-					Block block = new Block(new Vector3(x, y, z), ChunkPosition);
-					blocks.Add(block.ChunkBlockPosition, block);
 				}
 			}
 		}
@@ -134,7 +133,7 @@ public class Chunk : Spatial
 						vertices.Add(block.Value.ChunkBlockPosition + v);
 					}
 
-					foreach (Vector2 u in ChunkHelper.GetCubeUvs(side, 2, textureAtlasSize))
+					foreach (Vector2 u in ChunkHelper.GetCubeUvs(side, block.Value.Type, textureAtlasSize))
 					{
 						uvs.Add(u);
 					}

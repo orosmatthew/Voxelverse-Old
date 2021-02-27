@@ -260,7 +260,7 @@ public class ChunkHelper : Reference
         switch (type)
         {
             case 1: return new Vector2[] {new Vector2(1, 0), new Vector2(1, 0), new Vector2(1, 0), 
-                                          new Vector2(1, 0), new Vector2(0, 0), new Vector2(0, 0)};
+                                          new Vector2(1, 0), new Vector2(0, 0), new Vector2(2, 0)};
 
             case 2: return new Vector2[] {new Vector2(3, 0), new Vector2(3, 0), new Vector2(3, 0), 
                                           new Vector2(3, 0), new Vector2(3, 0), new Vector2(3, 0)};

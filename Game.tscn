@@ -47,5 +47,5 @@ material/0 = null
 one_shot = true
 
 [node name="Player" parent="." instance=ExtResource( 3 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.94855, 0 )
+transform = Transform( -0.639009, 0, -0.769199, 0, 1, 0, 0.769199, 0, -0.639009, 9.20737, 36.0912, 33.8202 )
 Gravity = 40.0

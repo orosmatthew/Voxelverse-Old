@@ -13,16 +13,16 @@ public class ChunkManager : Reference
 
 	public void Start(object n)
 	{
-		for (int x = 0; x < 8; x++)
+		for (int x = 0; x < 16; x++)
 		{
-			for (int y = 0; y < 8; y++)
+			for (int y = 0; y < 4; y++)
 			{
-				for (int z = 0; z < 8; z++)
+				for (int z = 0; z < 16; z++)
 				{
 					PackedScene chunkScene = (PackedScene)ResourceLoader.Load("res://objects/Chunk.tscn");
 					Chunk chunk = (Chunk)chunkScene.Instance();
 					chunk.ChunkPosition = new Vector3(x, y, z);
-					chunk.GenerateChunk();
+					chunk.GenerateChunk(game.MainWorldGenerator);
 					game.CallDeferred("PlaceChunk", chunk);
 				}
 			}

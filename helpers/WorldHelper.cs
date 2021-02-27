@@ -3,11 +3,17 @@ using System;
 
 public class WorldHelper : Reference
 {
+
+    public static int ChunkSize
+    {
+        get { return 8; }
+    }
+
     public static Vector3 GetChunkFromWorld(Vector3 worldPosition)
     {
-        Vector3 chunkPosition = new Vector3(Mathf.Floor(worldPosition.x / 8.0f), 
-                                            Mathf.Floor(worldPosition.y / 8.0f), 
-                                            Mathf.Floor(worldPosition.z / 8.0f));
+        Vector3 chunkPosition = new Vector3(Mathf.Floor(worldPosition.x / (float)ChunkSize), 
+                                            Mathf.Floor(worldPosition.y / (float)ChunkSize), 
+                                            Mathf.Floor(worldPosition.z / (float)ChunkSize));
         return chunkPosition;
     }
 
@@ -21,17 +27,17 @@ public class WorldHelper : Reference
 
     public static Vector3 GetChunkBlockFromWorld(Vector3 worldPosition)
     {
-        Vector3 chunkBlockPosition = new Vector3((int)(worldPosition.x) % 8, 
-                                                 (int)(worldPosition.y) % 8, 
-                                                 (int)(worldPosition.z) % 8);
+        Vector3 chunkBlockPosition = new Vector3((int)(worldPosition.x) % ChunkSize, 
+                                                 (int)(worldPosition.y) % ChunkSize, 
+                                                 (int)(worldPosition.z) % ChunkSize);
         return chunkBlockPosition;
     }
 
     public static Vector3 GetWorldBlockFromChunkBlock(Vector3 chunkPosition, Vector3 chunkBlockPosition)
     {
-        Vector3 worldBlockPosition = new Vector3((chunkPosition.x * 8) + chunkBlockPosition.x, 
-                                                 (chunkPosition.y * 8) + chunkBlockPosition.y, 
-                                                 (chunkPosition.z * 8) + chunkBlockPosition.z);
+        Vector3 worldBlockPosition = new Vector3((chunkPosition.x * ChunkSize) + chunkBlockPosition.x, 
+                                                 (chunkPosition.y * ChunkSize) + chunkBlockPosition.y, 
+                                                 (chunkPosition.z * ChunkSize) + chunkBlockPosition.z);
         return worldBlockPosition;
     }
 
