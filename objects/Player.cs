@@ -76,8 +76,10 @@ public class Player : KinematicBody
 		if (@event is InputEventMouseMotion)
 		{
 			InputEventMouseMotion mouseMotionEvent = (InputEventMouseMotion)@event;
-			RotateY(Mathf.Deg2Rad(-mouseMotionEvent.Relative.x * MouseSensitivity));
-			headNode.RotateX(Mathf.Deg2Rad(-mouseMotionEvent.Relative.y * MouseSensitivity));
+			RotateObjectLocal(new Vector3(0, 1, 0), Mathf.Deg2Rad(-mouseMotionEvent.Relative.x * MouseSensitivity));
+			//RotateY(Mathf.Deg2Rad(-mouseMotionEvent.Relative.x * MouseSensitivity));
+			//headNode.RotateX(Mathf.Deg2Rad(-mouseMotionEvent.Relative.y * MouseSensitivity));
+			headNode.RotateObjectLocal(new Vector3(1, 0, 0), Mathf.Deg2Rad(-mouseMotionEvent.Relative.y * MouseSensitivity));
 			Vector3 headRotation = headNode.Rotation;
 			headRotation.x = Mathf.Clamp(headNode.Rotation.x, Mathf.Deg2Rad(-89.9f), Mathf.Deg2Rad(89.9f));
 			headNode.Rotation = headRotation;
@@ -240,20 +242,20 @@ public class Player : KinematicBody
 
 		if (Input.IsActionPressed("move_forward"))
 		{
-			direction -= Transform.basis.z;
+			direction -= new Vector3(0, 0, 1);
 		}
 		else if (Input.IsActionPressed("move_backward"))
 		{
-			direction += Transform.basis.z;
+			direction += new Vector3(0, 0, 1);
 		}
 
 		if (Input.IsActionPressed("move_left"))
 		{
-			direction -= Transform.basis.x;
+			direction -= new Vector3(1, 0, 0);
 		}
 		else if (Input.IsActionPressed("move_right"))
 		{
-			direction += Transform.basis.x;
+			direction += new Vector3(1, 0, 0);
 		}
 
 		direction = direction.Normalized();
@@ -315,7 +317,11 @@ public class Player : KinematicBody
 			}
 		}
 
-		velocity = MoveAndSlide(movement, Vector3.Up);
+		
+
+		Vector3 localDirection = Transform.basis.Xform(movement);
+
+		velocity = MoveAndSlide(localDirection, Transform.basis.y);
 
 	}
 
