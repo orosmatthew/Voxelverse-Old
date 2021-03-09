@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-public class Block : Reference
+public abstract class Block : Reference
 {
 
     public enum Sides
@@ -17,17 +17,17 @@ public class Block : Reference
     public Vector3 ChunkBlockPosition { get; }
     public Vector3 WorldBlockPosition { get; }
     public Vector3 ChunkPosition { get; }
-    public int Type { get; }
-
     public bool[] AdjacentBlocks { get; set; }
 
-    public Block(Vector3 chunkBlockPosition, Vector3 chunkPosition, int type = 0)
+    public abstract BlockMesh Mesh { get; }
+    public abstract string Type { get; }
+
+    public Block(Vector3 chunkBlockPosition, Vector3 chunkPosition)
     {
         ChunkBlockPosition = chunkBlockPosition;
         ChunkPosition = chunkPosition;
         WorldBlockPosition = WorldHelper.GetWorldBlockFromChunkBlock(chunkPosition, ChunkBlockPosition);
         AdjacentBlocks = new bool[6];
-        Type = type;
     }
 
 }

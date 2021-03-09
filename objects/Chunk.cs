@@ -29,7 +29,7 @@ public class Chunk : Spatial
 		{
 			return;
 		}
-		Block block = new Block(chunkBlockPosition, ChunkPosition, 1);
+		Block block = new Grass(chunkBlockPosition, ChunkPosition);
 		blocks.Add(block.ChunkBlockPosition, block);
 		Godot.Collections.Array<Vector3> updateList = new Godot.Collections.Array<Vector3>();
 		for (int a = 0; a < 6; a++)
@@ -68,8 +68,27 @@ public class Chunk : Spatial
 					int b = worldGenerator.QueryBlock(queryPosition);
 					if (b != 0)
 					{
-						Block block = new Block(new Vector3(x, y, z), ChunkPosition, b);
-						blocks.Add(block.ChunkBlockPosition, block);
+						if (b == 1)
+						{
+							Block block = new Grass(new Vector3(x, y, z), ChunkPosition);
+							blocks.Add(block.ChunkBlockPosition, block);
+						}
+						else if (b == 2)
+						{
+							Block block = new Stone(new Vector3(x, y, z), ChunkPosition);
+							blocks.Add(block.ChunkBlockPosition, block);
+						}
+						else if (b == 3)
+						{
+							Block block = new Sand(new Vector3(x, y, z), ChunkPosition);
+							blocks.Add(block.ChunkBlockPosition, block);
+						}
+						else if (b == 4)
+						{
+							Block block = new Water(new Vector3(x, y, z), ChunkPosition);
+							blocks.Add(block.ChunkBlockPosition, block);
+						}
+						
 					}
 				}
 			}
@@ -128,12 +147,12 @@ public class Chunk : Spatial
 			{
 				if (block.Value.AdjacentBlocks[side] == false)
 				{
-					foreach (Vector3 v in ChunkHelper.GetCubeVertices(side))
+					foreach (Vector3 v in block.Value.Mesh.GetVertices(side))
 					{
 						vertices.Add(block.Value.ChunkBlockPosition + v);
 					}
 
-					foreach (Vector2 u in ChunkHelper.GetCubeUvs(side, block.Value.Type, textureAtlasSize))
+					foreach (Vector2 u in block.Value.Mesh.GetUVs(side, textureAtlasSize))
 					{
 						uvs.Add(u);
 					}
@@ -172,7 +191,7 @@ public class Chunk : Spatial
 			{
 				if (block.Value.AdjacentBlocks[a] == false)
 				{
-					foreach (Vector3 v in ChunkHelper.GetCubeVertices(a))
+					foreach (Vector3 v in block.Value.Mesh.GetVertices(a))
 					collisionVertices.Add(block.Value.ChunkBlockPosition + v);
 				}
 			}

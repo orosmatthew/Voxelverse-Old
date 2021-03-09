@@ -77,8 +77,6 @@ public class Player : KinematicBody
 		{
 			InputEventMouseMotion mouseMotionEvent = (InputEventMouseMotion)@event;
 			RotateObjectLocal(new Vector3(0, 1, 0), Mathf.Deg2Rad(-mouseMotionEvent.Relative.x * MouseSensitivity));
-			//RotateY(Mathf.Deg2Rad(-mouseMotionEvent.Relative.x * MouseSensitivity));
-			//headNode.RotateX(Mathf.Deg2Rad(-mouseMotionEvent.Relative.y * MouseSensitivity));
 			headNode.RotateObjectLocal(new Vector3(1, 0, 0), Mathf.Deg2Rad(-mouseMotionEvent.Relative.y * MouseSensitivity));
 			Vector3 headRotation = headNode.Rotation;
 			headRotation.x = Mathf.Clamp(headNode.Rotation.x, Mathf.Deg2Rad(-89.9f), Mathf.Deg2Rad(89.9f));
@@ -88,9 +86,16 @@ public class Player : KinematicBody
 
 	public override void _Process(float delta)
 	{
-		HandleMovement(delta);
+		UpdatePositions();
 		HandleSelection();
 	}
+
+	public override void _PhysicsProcess(float delta)
+	{
+		HandleMovement(delta);
+	}
+
+	
 
 	public Vector3 Position
 	{
@@ -119,7 +124,7 @@ public class Player : KinematicBody
 
 	private void UpdatePositions() 
 	{
-		position = GlobalTransform[3];
+		position = GlobalTransform.origin;
 		chunkPosition = WorldHelper.GetChunkFromWorld(Position);
 		blockPosition = WorldHelper.GetBlockFromWorld(Position);
 		chunkBlockPosition = WorldHelper.GetChunkBlockFromWorld(Position);
@@ -195,6 +200,7 @@ public class Player : KinematicBody
 					gameNode.Chunks[breakChunkPosition].RemoveBlock(WorldHelper.GetChunkBlockFromWorld(breakBlockPosition));
 				}
 			}
+			
 
 		}
 		else
@@ -285,12 +291,12 @@ public class Player : KinematicBody
 				movement.y = 0;
 			}
 
-			movement.y += gravityVector.y;
-
 			if (IsOnFloor() == true & movement.y <= 0)
 			{
 				movement.y = 0;
 			}
+
+			movement.y += gravityVector.y;
 
 			if (Input.IsActionPressed("move_up") & IsOnFloor() == true & movement.y <= 0)
 			{
@@ -316,8 +322,6 @@ public class Player : KinematicBody
 				movement.y = 0;
 			}
 		}
-
-		
 
 		Vector3 localDirection = Transform.basis.Xform(movement);
 

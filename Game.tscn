@@ -35,7 +35,7 @@ shadow_contact = 1.0
 one_shot = true
 
 [node name="Player" parent="." instance=ExtResource( 3 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 57.772, 31.497 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 29.141, -0.148 )
 Gravity = 40.0
 
 [node name="ChunkHolder" type="Spatial" parent="."]

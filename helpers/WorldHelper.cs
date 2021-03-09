@@ -27,9 +27,21 @@ public class WorldHelper : Reference
 
     public static Vector3 GetChunkBlockFromWorld(Vector3 worldPosition)
     {
-        Vector3 chunkBlockPosition = new Vector3((int)(worldPosition.x) % ChunkSize, 
-                                                 (int)(worldPosition.y) % ChunkSize, 
-                                                 (int)(worldPosition.z) % ChunkSize);
+        Vector3 chunkBlockPosition = new Vector3(Mathf.Floor(worldPosition.x) % ChunkSize, 
+                                                 Mathf.Floor(worldPosition.y) % ChunkSize, 
+                                                 Mathf.Floor(worldPosition.z) % ChunkSize);
+        if (chunkBlockPosition.x < 0) 
+        {
+            chunkBlockPosition.x += ChunkSize;
+        }
+        if (chunkBlockPosition.y < 0) 
+        {
+            chunkBlockPosition.y += ChunkSize;
+        }
+        if (chunkBlockPosition.z < 0) 
+        {
+            chunkBlockPosition.z += ChunkSize;
+        }
         return chunkBlockPosition;
     }
 

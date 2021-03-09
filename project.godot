@@ -45,8 +45,8 @@ gdscript/warnings/deprecated_keyword=false
 
 [display]
 
-window/size/width=1600
-window/size/height=900
+window/size/width=1280
+window/size/height=720
 window/size/resizable=false
 
 [input]
