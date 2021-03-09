@@ -40,28 +40,4 @@ public class ChunkHelper : Reference
             default: return 0;
         }
     }
-
-
-
-    public static Vector2[] GetTexturePositionsFromBlockType(int type)
-    {
-        switch (type)
-        {
-            case 1: return new Vector2[] {new Vector2(1, 0), new Vector2(1, 0), new Vector2(1, 0), 
-                                          new Vector2(1, 0), new Vector2(0, 0), new Vector2(2, 0)};
-
-            case 2: return new Vector2[] {new Vector2(3, 0), new Vector2(3, 0), new Vector2(3, 0), 
-                                          new Vector2(3, 0), new Vector2(3, 0), new Vector2(3, 0)};
-
-            case 3: return new Vector2[] {new Vector2(4, 0), new Vector2(4, 0), new Vector2(4, 0), 
-                                          new Vector2(4, 0), new Vector2(4, 0), new Vector2(4, 0)};
-
-            case 4: return new Vector2[] {new Vector2(5, 0), new Vector2(5, 0), new Vector2(5, 0), 
-                                          new Vector2(5, 0), new Vector2(5, 0), new Vector2(5, 0)};
-
-            default: return new Vector2[] {new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 0), 
-                                          new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 0)};
-        }
-    }
-
 }

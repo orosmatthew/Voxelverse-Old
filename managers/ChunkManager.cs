@@ -15,7 +15,7 @@ public class ChunkManager : Reference
 	{
 		for (int x = -8; x < 8; x++)
 		{
-			for (int y = 0; y < 4; y++)
+			for (int y = 0; y < 8; y++)
 			{
 				for (int z = -8; z < 8; z++)
 				{

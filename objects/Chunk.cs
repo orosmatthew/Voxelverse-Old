@@ -1,5 +1,4 @@
 using Godot;
-using System;
 
 public class Chunk : Spatial
 {
@@ -16,12 +15,16 @@ public class Chunk : Spatial
 		get { return blockPositions; }
 	}
 	
-	private MeshInstance chunkMesh;
-	private StaticBody staticNode;
-	private Vector2 textureAtlasSize = new Vector2(8, 8);
 	private Godot.Collections.Dictionary<Vector3, Block> blocks = new Godot.Collections.Dictionary<Vector3, Block>();
-	private Material material = (Material)(GD.Load("res://TextureMaterial.tres"));
 	private Godot.Collections.Array<Vector3> blockPositions = new Godot.Collections.Array<Vector3>();
+	private ChunkMesh chunkMesh = new ChunkMesh();
+	private ChunkCollisionMesh chunkCollisionMesh = new ChunkCollisionMesh();
+
+	public Chunk()
+	{
+		AddChild(chunkCollisionMesh);
+		AddChild(chunkMesh);
+	}
 
 	public void PlaceBlock(Vector3 chunkBlockPosition, int type)
 	{
@@ -37,7 +40,7 @@ public class Chunk : Spatial
 			updateList.Add(block.ChunkBlockPosition + ChunkHelper.GetAdjacentBlockPosition(a));
 		}
 		UpdateChunk(updateList);
-		CreateChunkCollision();
+		chunkCollisionMesh.CreateChunkCollision(blocks);
 	}
 
 	public void RemoveBlock(Vector3 chunkBlockPosition)
@@ -51,7 +54,7 @@ public class Chunk : Spatial
 				updateList.Add(chunkBlockPosition + ChunkHelper.GetAdjacentBlockPosition(a));
 			}
 			UpdateChunk(updateList);
-			CreateChunkCollision();
+			chunkCollisionMesh.CreateChunkCollision(blocks);
 		}
 	}
 
@@ -94,7 +97,7 @@ public class Chunk : Spatial
 			}
 		}
 		UpdateChunk();
-		CreateChunkCollision();
+		chunkCollisionMesh.CreateChunkCollision(blocks);
 	}
 
 	public void UpdateChunk(Godot.Collections.Array<Vector3> updateList = null)
@@ -122,96 +125,9 @@ public class Chunk : Spatial
 				}
 			}
 		}
-		BuildChunk();
+		chunkMesh.BuildChunk(blocks);
 	}
 
-	public void BuildChunk()
-	{
 
-		if (chunkMesh != null)
-		{
-			chunkMesh.Free();
-		}
 
-		MeshInstance meshInstance = new MeshInstance();
-		SurfaceTool surfaceTool = new SurfaceTool();
-
-		surfaceTool.Begin(Mesh.PrimitiveType.Triangles);
-
-		Godot.Collections.Array<Vector3> vertices = new Godot.Collections.Array<Vector3>();
-		Godot.Collections.Array<Vector2> uvs = new Godot.Collections.Array<Vector2>();
-
-		foreach (System.Collections.Generic.KeyValuePair<Vector3, Block> block in blocks)
-		{
-			for (int side = 0; side < 6; side++)
-			{
-				if (block.Value.AdjacentBlocks[side] == false)
-				{
-					foreach (Vector3 v in block.Value.Mesh.GetVertices(side))
-					{
-						vertices.Add(block.Value.ChunkBlockPosition + v);
-					}
-
-					foreach (Vector2 u in block.Value.Mesh.GetUVs(side, textureAtlasSize))
-					{
-						uvs.Add(u);
-					}
-				}
-			}
-		}
-
-		for (int i = 0; i < vertices.Count; i++)
-		{
-			surfaceTool.AddUv(uvs[i]);
-			surfaceTool.AddVertex(vertices[i]);
-		}
-
-		surfaceTool.GenerateNormals();
-		surfaceTool.SetMaterial(material);
-		ArrayMesh arrayMesh = surfaceTool.Commit();
-		meshInstance.Mesh = arrayMesh;
-		meshInstance.Name = "mesh";
-		chunkMesh = meshInstance;
-		AddChild(chunkMesh);
-	}
-
-	public void CreateChunkCollision()
-	{
-
-		if (staticNode != null)
-		{
-			staticNode.Free();
-		}
-
-		Godot.Collections.Array<Vector3> collisionVertices = new Godot.Collections.Array<Vector3>();
-
-		foreach (System.Collections.Generic.KeyValuePair<Vector3, Block> block in blocks)
-		{
-			for (int a = 0; a < 6; a++)
-			{
-				if (block.Value.AdjacentBlocks[a] == false)
-				{
-					foreach (Vector3 v in block.Value.Mesh.GetVertices(a))
-					collisionVertices.Add(block.Value.ChunkBlockPosition + v);
-				}
-			}
-		}
-
-		if (collisionVertices.Count == 0)
-		{
-			return;
-		}
-
-		StaticBody staticBody = new StaticBody();
-		staticBody.Name = "StaticBody";
-		AddChild(staticBody);
-		staticNode = staticBody;
-		CollisionShape collisionShape = new CollisionShape();
-		staticBody.AddChild(collisionShape);
-		ConcavePolygonShape concavePolygonShape = new ConcavePolygonShape();
-		Vector3[] collisionArray = new Vector3[collisionVertices.Count];
-		collisionVertices.CopyTo(collisionArray, 0);
-		concavePolygonShape.Data = collisionArray;
-		collisionShape.Shape = concavePolygonShape;
-	}
 }
